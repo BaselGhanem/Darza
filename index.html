@@ -3,30 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DARZA PRO - إدارة تفصيلية</title>
+    <title>DARZA PRO - النظام المتكامل</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { font-family: 'Almarai', sans-serif; background-color: #f0f4f4; }
+        body { font-family: 'Almarai', sans-serif; background-color: #f4f7f6; }
         .navbar { background-color: #099999; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .navbar-brand, .nav-link { color: white !important; font-weight: bold; }
         .nav-pills .nav-link.active { background-color: white !important; color: #099999 !important; }
         .btn-main { background-color: #099999; color: white; border: none; }
-        .card { border-radius: 12px; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 15px; overflow: hidden; }
-        
-        /* ألوان الحالات */
-        .new-border { border-right: 12px solid #ffc107; }
-        .process-border { border-right: 12px solid #17a2b8; }
-        .done-border { border-right: 12px solid #28a745; }
-
-        .order-header { cursor: pointer; padding: 15px; background: #fff; transition: 0.2s; }
-        .order-header:hover { background: #f8f9fa; }
-        .order-details { display: none; padding: 20px; background: #fafafa; border-top: 1px solid #eee; }
-        
-        .info-label { color: #666; font-size: 0.85rem; margin-bottom: 2px; }
-        .info-value { font-weight: bold; color: #333; margin-bottom: 10px; }
-        
-        .filter-bar { background: white; padding: 15px; border-radius: 10px; margin-bottom: 25px; }
+        .card { border-radius: 15px; border: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: 0.3s; }
+        .order-card { cursor: pointer; border-right: 8px solid #ddd; margin-bottom: 10px; }
+        .order-card:hover { transform: scale(1.02); }
+        .new-border { border-right-color: #ffc107; }
+        .process-border { border-right-color: #17a2b8; }
+        .done-border { border-right-color: #28a745; }
+        .score-card { text-align: center; padding: 20px; color: white; border-radius: 15px; }
     </style>
 </head>
 <body>
@@ -38,7 +32,6 @@
             <li class="nav-item"><button class="nav-link active" onclick="showTab('tab-entry')">إدخال طلب</button></li>
             <li class="nav-item"><button class="nav-link" onclick="showTab('tab-manage')">إدارة الطلبات</button></li>
             <li class="nav-item"><button class="nav-link" onclick="showTab('tab-reports')">التقارير</button></li>
-            <li class="nav-item"><button class="nav-link" onclick="showTab('tab-summary')">الملخص</button></li>
         </ul>
     </div>
 </nav>
@@ -47,25 +40,25 @@
     
     <div id="tab-entry" class="tab-content">
         <div class="card p-4">
-            <h4 style="color: #099999;" class="mb-4">إضافة طلب جديد</h4>
+            <h4 style="color: #099999;" class="mb-4 text-center">إضافة طلبية جديدة</h4>
             <form id="orderForm" class="row g-3">
-                <div class="col-md-4"><label>اسم الموظف (المدخل)</label><input type="text" id="entryUser" class="form-control" required></div>
+                <div class="col-md-4"><label>اسم مدخل الطلب</label><input type="text" id="entryUser" class="form-control" required></div>
                 <div class="col-md-4"><label>اسم الزبون</label><input type="text" id="custName" class="form-control" required></div>
                 <div class="col-md-4"><label>عنوان الزبون</label><input type="text" id="custAddr" class="form-control" required></div>
-                <div class="col-md-3"><label>رقم الموبايل</label><input type="text" id="custMob" class="form-control" required></div>
+                <div class="col-md-3"><label>الموبايل</label><input type="text" id="custMob" class="form-control" required></div>
                 <div class="col-md-3"><label>الموديل</label><input type="text" id="model" class="form-control" required></div>
                 <div class="col-md-3"><label>النمرة</label><input type="text" id="size" class="form-control" required></div>
-                <div class="col-md-3"><label>الوزن والطول</label><input type="text" id="wtHt" class="form-control" required></div>
-                <div class="col-md-4"><label>اسم الصفحة</label><input type="text" id="pageName" class="form-control" required></div>
-                <div class="col-md-4"><label>السعر شامل التوصيل</label><input type="number" id="price" class="form-control" required></div>
-                <div class="col-12 mt-3"><button type="submit" class="btn btn-main w-100 py-2">حفظ الطلب</button></div>
+                <div class="col-md-3"><label>الوزن/الطول</label><input type="text" id="wtHt" class="form-control" required></div>
+                <div class="col-md-6"><label>اسم الصفحة</label><input type="text" id="pageName" class="form-control" required></div>
+                <div class="col-md-6"><label>السعر شامل التوصيل</label><input type="number" id="price" class="form-control" required></div>
+                <button type="submit" class="btn btn-main w-100 mt-4 py-2">حفظ الطلبية</button>
             </form>
         </div>
     </div>
 
     <div id="tab-manage" class="tab-content" style="display:none;">
         <div id="adminLockSection" class="card p-5 text-center">
-            <h5>قسم الإدارة (محمي)</h5>
+            <h5>هذا القسم محمي للمسؤول</h5>
             <div class="d-flex justify-content-center mt-3">
                 <input type="password" id="adminPass" class="form-control w-25 me-2" placeholder="باسوورد">
                 <button onclick="verifyAdmin()" class="btn btn-main">دخول</button>
@@ -73,56 +66,41 @@
         </div>
 
         <div id="adminContent" style="display:none;">
-            <div class="filter-bar shadow-sm">
-                <input type="text" id="globalSearch" class="form-control" placeholder="🔍 ابحث في جميع البيانات (اسم، موبايل، موديل، موظف...)" onkeyup="renderOrders()">
+            <div class="row mb-4">
+                <div class="col-md-4"><div class="score-card shadow-sm" style="background:#ffc107"><h6>الجديدة</h6><h2 id="count-new">0</h2></div></div>
+                <div class="col-md-4"><div class="score-card shadow-sm" style="background:#17a2b8"><h6>قيد التحضير</h6><h2 id="count-process">0</h2></div></div>
+                <div class="col-md-4"><div class="score-card shadow-sm" style="background:#28a745"><h6>الجاهزة</h6><h2 id="count-done">0</h2></div></div>
+            </div>
+
+            <div class="card p-3 mb-4">
+                <input type="text" id="globalSearch" class="form-control" placeholder="🔍 ابحث في جميع الطلبات..." onkeyup="renderOrders()">
             </div>
 
             <div class="row">
-                <div class="col-lg-4">
-                    <h5 class="text-warning mb-3">جديدة (New)</h5>
-                    <div id="list-new"></div>
-                </div>
-                <div class="col-lg-4">
-                    <h5 class="text-info mb-3">قيد التحضير (Processing)</h5>
-                    <div id="list-process"></div>
-                </div>
-                <div class="col-lg-4">
-                    <h5 class="text-success mb-3">جاهزة (Done)</h5>
-                    <div id="list-done"></div>
-                </div>
+                <div class="col-md-4"><h5 class="text-center">🆕 جديدة</h5><div id="list-new"></div></div>
+                <div class="col-md-4"><h5 class="text-center">⚙️ تحضير</h5><div id="list-process"></div></div>
+                <div class="col-md-4"><h5 class="text-center">✅ جاهزة</h5><div id="list-done"></div></div>
             </div>
         </div>
     </div>
 
-    <div id="tab-reports" class="tab-content" style="display:none;">
-         <div class="card p-4">
-            <h5>إنتاجية الموظفين</h5>
-            <div class="row g-2 mb-3">
-                <div class="col-md-3"><input type="date" id="repFrom" class="form-control"></div>
-                <div class="col-md-3"><input type="date" id="repTo" class="form-control"></div>
-                <div class="col-md-3"><input type="text" id="repUser" class="form-control" placeholder="اسم الموظف"></div>
-                <div class="col-md-3"><input type="number" id="unitPrice" class="form-control" placeholder="سعر الطلب"></div>
-            </div>
-            <button onclick="calculateEmployeeReport()" class="btn btn-main w-100">حساب</button>
-            <div id="repResult" class="mt-3 alert alert-secondary" style="display:none;"></div>
-         </div>
-    </div>
+</div>
 
-    <div id="tab-summary" class="tab-content" style="display:none;">
-        <div class="card p-4">
-            <h5>إحصائيات عامة</h5>
-            <select id="sumStatus" class="form-select mb-3" onchange="calculateSummary()">
-                <option value="new">طلبات جديدة</option>
-                <option value="process">قيد التحضير</option>
-                <option value="done">طلبات جاهزة</option>
-            </select>
-            <div class="row text-center">
-                <div class="col-6"><h6>العدد:</h6> <h3 id="sumCount" style="color:#099999">0</h3></div>
-                <div class="col-6"><h6>الإجمالي:</h6> <h3 id="sumTotal" style="color:#28a745">0 JOD</h3></div>
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" id="pdfArea">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title">تفاصيل الطلبية</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                </div>
+            <div class="modal-footer no-pdf">
+                <button class="btn btn-dark" onclick="downloadPDF()">تحميل PDF 📄</button>
+                <div id="actionButtons"></div>
             </div>
         </div>
     </div>
-
 </div>
 
 <script type="module">
@@ -141,24 +119,24 @@
     const ordersRef = ref(db, 'orders');
     let allOrders = {};
 
-    window.showTab = (tabId) => {
+    window.showTab = (id) => {
         document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-        document.getElementById(tabId).style.display = 'block';
-        document.querySelectorAll('.nav-link').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(id).style.display = 'block';
+        document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
         event.currentTarget.classList.add('active');
     };
 
     window.verifyAdmin = () => {
         if(document.getElementById('adminPass').value === "2026") {
-            document.getElementById('adminLockSection').style.display = 'none';
-            document.getElementById('adminContent').style.display = 'block';
-        } else { alert("كلمة المرور خاطئة"); }
+            document.getElementById('adminLockSection').style.display='none';
+            document.getElementById('adminContent').style.display='block';
+        } else { alert("خطأ!"); }
     };
 
     document.getElementById('orderForm').onsubmit = (e) => {
         e.preventDefault();
-        const data = {
-            date: new Date().toISOString().split('T')[0],
+        const d = {
+            date: new Date().toLocaleDateString('en-GB'),
             entryUser: document.getElementById('entryUser').value,
             custName: document.getElementById('custName').value,
             custAddr: document.getElementById('custAddr').value,
@@ -167,94 +145,84 @@
             size: document.getElementById('size').value,
             wtHt: document.getElementById('wtHt').value,
             pageName: document.getElementById('pageName').value,
-            price: parseFloat(document.getElementById('price').value),
+            price: document.getElementById('price').value,
             status: 'new'
         };
-        push(ordersRef, data);
-        alert("تم الحفظ");
-        e.target.reset();
+        push(ordersRef, d);
+        alert("تم الحفظ"); e.target.reset();
     };
 
-    onValue(ordersRef, (snapshot) => {
-        allOrders = snapshot.val() || {};
+    onValue(ordersRef, (s) => {
+        allOrders = s.val() || {};
         renderOrders();
     });
 
     window.renderOrders = () => {
         const query = document.getElementById('globalSearch').value.toLowerCase();
-        const containers = { new: 'list-new', process: 'list-process', done: 'list-done' };
-        Object.values(containers).forEach(id => document.getElementById(id).innerHTML = '');
+        const counts = {new:0, process:0, done:0};
+        const lists = {new: 'list-new', process: 'list-process', done: 'list-done'};
+        Object.values(lists).forEach(id => document.getElementById(id).innerHTML='');
 
-        for(let id in allOrders) {
+        for(let id in allOrders){
             const o = allOrders[id];
-            const searchStr = `${o.custName} ${o.custMob} ${o.model} ${o.entryUser} ${o.custAddr}`.toLowerCase();
-            if(query && !searchStr.includes(query)) continue;
+            counts[o.status]++;
+            if(query && !JSON.stringify(o).toLowerCase().includes(query)) continue;
 
-            const html = `
-                <div class="card ${o.status}-border">
-                    <div class="order-header" onclick="toggleDetails('${id}')">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>${o.custName}</strong><br>
-                                <small class="text-muted">${o.model} | ${o.custMob}</small>
-                            </div>
-                            <span class="badge bg-light text-dark shadow-sm">${o.price} JOD</span>
-                        </div>
-                    </div>
-                    <div class="order-details" id="details-${id}">
-                        <div class="row">
-                            <div class="col-6"><div class="info-label">تاريخ الإدخال</div><div class="info-value">${o.date}</div></div>
-                            <div class="col-6"><div class="info-label">مدخل الطلب</div><div class="info-value">${o.entryUser}</div></div>
-                            <div class="col-12"><div class="info-label">العنوان الكامل</div><div class="info-value">${o.custAddr}</div></div>
-                            <div class="col-6"><div class="info-label">النمرة</div><div class="info-value">${o.size}</div></div>
-                            <div class="col-6"><div class="info-label">الوزن والطول</div><div class="info-value">${o.wtHt}</div></div>
-                            <div class="col-6"><div class="info-label">اسم الصفحة</div><div class="info-value">${o.pageName}</div></div>
-                            <div class="col-6"><div class="info-label">الموبايل</div><div class="info-value">${o.custMob}</div></div>
-                        </div>
-                        <hr>
-                        <div class="d-flex gap-2">
-                            ${o.status === 'new' ? `<button onclick="move('${id}','process')" class="btn btn-sm btn-info text-white flex-grow-1">نقل لقيد التحضير</button>` : ''}
-                            ${o.status === 'process' ? `<button onclick="move('${id}','done')" class="btn btn-sm btn-success flex-grow-1">نقل للجاهزة</button>` : ''}
-                            ${o.status !== 'new' ? `<button onclick="move('${id}','new')" class="btn btn-sm btn-warning">إرجاع للجديدة</button>` : ''}
-                            <button onclick="del('${id}')" class="btn btn-sm btn-danger">حذف</button>
-                        </div>
-                    </div>
+            const card = `
+                <div class="card p-3 order-card ${o.status}-border shadow-sm" onclick="openDetails('${id}')">
+                    <strong>${o.custName}</strong>
+                    <div class="small text-muted">${o.model} - ${o.custMob}</div>
+                    <div class="fw-bold" style="color:#099999">${o.price} JOD</div>
                 </div>`;
-            document.getElementById(containers[o.status]).insertAdjacentHTML('afterbegin', html);
+            document.getElementById(lists[o.status]).insertAdjacentHTML('afterbegin', card);
         }
+        document.getElementById('count-new').innerText = counts.new;
+        document.getElementById('count-process').innerText = counts.process;
+        document.getElementById('count-done').innerText = counts.done;
     };
 
-    window.toggleDetails = (id) => {
-        const el = document.getElementById(`details-${id}`);
-        const isVisible = el.style.display === 'block';
-        document.querySelectorAll('.order-details').forEach(d => d.style.display = 'none'); // غلق البقية
-        el.style.display = isVisible ? 'none' : 'block';
+    window.openDetails = (id) => {
+        const o = allOrders[id];
+        const modalBody = document.getElementById('modalBody');
+        modalBody.innerHTML = `
+            <div class="row g-3 p-2" dir="rtl" style="text-align:right">
+                <div class="col-6"><strong>التاريخ:</strong> ${o.date}</div>
+                <div class="col-6"><strong>المدخل:</strong> ${o.entryUser}</div>
+                <hr>
+                <div class="col-12"><h5>الزبون: ${o.custName}</h5></div>
+                <div class="col-12"><strong>العنوان:</strong> ${o.custAddr}</div>
+                <div class="col-6"><strong>الموبايل:</strong> ${o.custMob}</div>
+                <div class="col-6"><strong>الصفحة:</strong> ${o.pageName}</div>
+                <hr>
+                <div class="col-6"><strong>الموديل:</strong> ${o.model}</div>
+                <div class="col-6"><strong>النمرة:</strong> ${o.size}</div>
+                <div class="col-6"><strong>الوزن/الطول:</strong> ${o.wtHt}</div>
+                <div class="col-6"><h4 style="color:#099999">السعر: ${o.price} JOD</h4></div>
+            </div>`;
+        
+        document.getElementById('actionButtons').innerHTML = `
+            ${o.status === 'new' ? `<button class="btn btn-info text-white" onclick="move('${id}','process')">تجهيز</button>` : ''}
+            ${o.status === 'process' ? `<button class="btn btn-success" onclick="move('${id}','done')">إتمام</button>` : ''}
+            <button class="btn btn-warning" onclick="move('${id}','new')">إرجاع</button>
+            <button class="btn btn-danger" onclick="del('${id}')">حذف</button>
+        `;
+        new bootstrap.Modal(document.getElementById('detailsModal')).show();
     };
 
-    window.move = (id, s) => update(ref(db, 'orders/' + id), { status: s });
-    window.del = (id) => confirm("حذف نهائي؟") && remove(ref(db, 'orders/' + id));
+    window.move = (id, s) => { update(ref(db, 'orders/'+id), {status:s}); bootstrap.Modal.getInstance(document.getElementById('detailsModal')).hide(); };
+    window.del = (id) => { if(confirm("حذف؟")) { remove(ref(db, 'orders/'+id)); bootstrap.Modal.getInstance(document.getElementById('detailsModal')).hide(); } };
 
-    window.calculateEmployeeReport = () => {
-        const from = document.getElementById('repFrom').value;
-        const to = document.getElementById('repTo').value;
-        const user = document.getElementById('repUser').value.toLowerCase();
-        const price = parseFloat(document.getElementById('unitPrice').value) || 0;
-        let count = 0;
-        for(let id in allOrders) {
-            const o = allOrders[id];
-            if((!user || o.entryUser.toLowerCase().includes(user)) && (!from || o.date >= from) && (!to || o.date <= to)) count++;
-        }
-        document.getElementById('repResult').style.display = 'block';
-        document.getElementById('repResult').innerHTML = `عدد الطلبات: <strong>${count}</strong> | المبلغ: <strong>${count*price} JOD</strong>`;
-    };
-
-    window.calculateSummary = () => {
-        const s = document.getElementById('sumStatus').value;
-        let count = 0, total = 0;
-        for(let id in allOrders) { if(allOrders[id].status === s) { count++; total += allOrders[id].price; } }
-        document.getElementById('sumCount').innerText = count;
-        document.getElementById('sumTotal').innerText = total + " JOD";
+    window.downloadPDF = () => {
+        const element = document.getElementById('modalBody');
+        html2canvas(element, { scale: 2 }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            pdf.addImage(imgData, 'PNG', 10, 10, 190, 0);
+            pdf.save(`Order_${Date.now()}.pdf`);
+        });
     };
 </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
