@@ -3,179 +3,272 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Darza Orders System</title>
+    <title>نظام إدارة طلبات Darza Pro</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Almarai', sans-serif; background-color: #f0f7f7; }
-        .navbar { background-color: #099999; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .navbar-brand, .nav-link { color: white !important; }
-        .nav-pills .nav-link.active { background-color: #099999; }
-        .btn-main { background-color: #099999; color: white; border: none; font-weight: bold; }
+        body { font-family: 'Almarai', sans-serif; background-color: #f4f9f9; }
+        .navbar { background-color: #099999; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .navbar-brand, .nav-link { color: white !important; font-weight: bold; }
+        .nav-pills .nav-link.active { background-color: white !important; color: #099999 !important; }
+        .btn-main { background-color: #099999; color: white; border: none; }
         .btn-main:hover { background-color: #077a7a; color: white; }
-        .card { border-radius: 15px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 12px; }
-        .order-new { border-right: 8px solid #ffc107; }
-        .order-done { border-right: 8px solid #28a745; background-color: #f8f9fa; }
-        #passwordSection { display: none; text-align: center; margin-top: 50px; }
-        #doneContent { display: none; }
+        .card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .status-badge { font-size: 0.8rem; padding: 5px 12px; border-radius: 20px; font-weight: bold; }
+        .new-bg { border-right: 10px solid #ffc107; }
+        .process-bg { border-right: 10px solid #17a2b8; }
+        .done-bg { border-right: 10px solid #28a745; }
+        .filter-section { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ddd; }
+        #adminLockSection { text-align: center; padding: 50px; }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg mb-4">
+<nav class="navbar navbar-expand-lg sticky-top mb-4">
     <div class="container">
-        <a class="navbar-brand" href="#">Darza System</a>
-        <ul class="nav nav-pills" id="pills-tab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="tab-new" data-bs-toggle="pill" data-bs-target="#new-orders" type="button" onclick="showNew()">الطلبات الجديدة</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="tab-done" type="button" onclick="checkAccess()">الطلبات الجاهزة ✅</button>
-            </li>
+        <a class="navbar-brand">DARZA PRO</a>
+        <ul class="nav nav-pills" id="mainTabs">
+            <li class="nav-item"><button class="nav-link active" onclick="showTab('tab-entry')">إدخال طلب</button></li>
+            <li class="nav-item"><button class="nav-link" onclick="showTab('tab-manage')">إدارة الطلبات</button></li>
+            <li class="nav-item"><button class="nav-link" onclick="showTab('tab-reports')">تقارير الموظفين</button></li>
+            <li class="nav-item"><button class="nav-link" onclick="showTab('tab-summary')">ملخص الحالات</button></li>
         </ul>
     </div>
 </nav>
 
 <div class="container">
-    <div class="tab-content">
-        
-        <div class="tab-pane fade show active" id="new-orders" role="tabpanel">
-            <div class="card p-4 mb-4">
-                <h5 style="color: #099999;" class="mb-3">إضافة طلبية جديدة</h5>
-                <div class="row g-2">
-                    <div class="col-md-5"><input type="text" id="custName" class="form-control" placeholder="اسم الزبون"></div>
-                    <div class="col-md-5"><input type="text" id="orderItem" class="form-control" placeholder="تفاصيل الطلبية"></div>
-                    <div class="col-md-2"><button onclick="sendOrder()" class="btn btn-main w-100">إرسال</button></div>
+    
+    <div id="tab-entry" class="tab-content">
+        <div class="card p-4">
+            <h4 style="color: #099999;" class="mb-4">نموذج طلب جديد</h4>
+            <form id="orderForm" class="row g-3">
+                <div class="col-md-4"><label>اسم مدخل الطلب</label><input type="text" id="entryUser" class="form-control" required></div>
+                <div class="col-md-4"><label>اسم الزبون</label><input type="text" id="custName" class="form-control" required></div>
+                <div class="col-md-4"><label>عنوان الزبون</label><input type="text" id="custAddr" class="form-control" required></div>
+                <div class="col-md-3"><label>رقم الموبايل</label><input type="text" id="custMob" class="form-control" required></div>
+                <div class="col-md-3"><label>الموديل</label><input type="text" id="model" class="form-control" required></div>
+                <div class="col-md-3"><label>النمرة</label><input type="text" id="size" class="form-control" required></div>
+                <div class="col-md-3"><label>الوزن والطول</label><input type="text" id="wtHt" class="form-control" placeholder="مثلا: 70kg/170cm" required></div>
+                <div class="col-md-4"><label>اسم الصفحة</label><input type="text" id="pageName" class="form-control" required></div>
+                <div class="col-md-4"><label>السعر شامل التوصيل</label><input type="number" id="price" class="form-control" required></div>
+                <div class="col-12 mt-4"><button type="submit" class="btn btn-main w-100 py-2">حفظ وإرسال الطلب</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="tab-manage" class="tab-content" style="display:none;">
+        <div class="filter-section">
+            <h6>🔍 فلترة ذكية (ابحث بأي معلومة)</h6>
+            <input type="text" id="globalSearch" class="form-control" placeholder="ابحث بالاسم، الموبايل، الموديل، العنوان..." onkeyup="renderOrders()">
+        </div>
+
+        <div id="adminLockSection" class="card">
+            <h5>هذا القسم محمي للمسؤول فقط</h5>
+            <div class="d-flex justify-content-center mt-3">
+                <input type="password" id="adminPass" class="form-control w-25 me-2" placeholder="كلمة المرور">
+                <button onclick="verifyAdmin()" class="btn btn-main">دخول</button>
+            </div>
+        </div>
+
+        <div id="adminContent" style="display:none;">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5 class="text-warning text-center">جديدة 🆕</h5>
+                    <div id="list-new"></div>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-info text-center">قيد التحضير ⚙️</h5>
+                    <div id="list-process"></div>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-success text-center">جاهزة ✅</h5>
+                    <div id="list-done"></div>
                 </div>
             </div>
-            <div id="newList"></div>
         </div>
-
-        <div id="passwordSection" class="card p-5">
-            <h4>هذا القسم محمي</h4>
-            <p>يرجى إدخال كلمة المرور للوصول للطلبات الجاهزة</p>
-            <div class="d-flex justify-content-center g-2">
-                <input type="password" id="passInput" class="form-control w-50 me-2" placeholder="كلمة المرور">
-                <button onclick="verifyPassword()" class="btn btn-main">دخول</button>
-            </div>
-            <button class="btn btn-link mt-3" onclick="showNew()">رجوع للطلبات الجديدة</button>
-        </div>
-
-        <div id="doneContent">
-            <h5 class="mb-3" style="color: #28a745;">الطلبات التي تم تسليمها ✅</h5>
-            <div id="doneList"></div>
-            <button class="btn btn-outline-secondary mt-3" onclick="lockDone()">قفل القسم وتسجيل الخروج</button>
-        </div>
-
     </div>
+
+    <div id="tab-reports" class="tab-content" style="display:none;">
+        <div class="card p-4">
+            <h5>إنتاجية مدخلي الطلبات</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3"><label>من تاريخ</label><input type="date" id="repFrom" class="form-control"></div>
+                <div class="col-md-3"><label>إلى تاريخ</label><input type="date" id="repTo" class="form-control"></div>
+                <div class="col-md-3"><label>اسم الموظف</label><input type="text" id="repUser" class="form-control"></div>
+                <div class="col-md-3"><label>سعر الطلب الواحد</label><input type="number" id="unitPrice" class="form-control" value="0"></div>
+                <div class="col-12"><button onclick="calculateEmployeeReport()" class="btn btn-main w-100">استخراج التقرير</button></div>
+            </div>
+            <div id="repResult" class="alert alert-info" style="display:none;">
+                <p id="repText" style="font-size: 1.2rem;"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-summary" class="tab-content" style="display:none;">
+        <div class="card p-4">
+            <h5>إحصائيات الحالات</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label>اختر الحالة</label>
+                    <select id="sumStatus" class="form-select">
+                        <option value="new">طلبات جديدة</option>
+                        <option value="process">قيد التحضير</option>
+                        <option value="done">طلبات جاهزة</option>
+                    </select>
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <button onclick="calculateSummary()" class="btn btn-main w-100">عرض الملخص</button>
+                </div>
+            </div>
+            <div id="sumResult" class="row">
+                <div class="col-md-6">
+                    <div class="card p-4 text-center bg-light">
+                        <h6>عدد الطلبيات</h6>
+                        <h2 id="sumCount" style="color: #099999;">0</h2>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card p-4 text-center bg-light">
+                        <h6>إجمالي السعر (مع التوصيل)</h6>
+                        <h2 id="sumTotal" style="color: #28a745;">0 JOD</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-  import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBMjcGVXoEpSLQQIFY0uDCzq6QGju8j5PQ",
-    authDomain: "darza-f1e08.firebaseapp.com",
-    projectId: "darza-f1e08",
-    storageBucket: "darza-f1e08.firebasestorage.app",
-    messagingSenderId: "316947066983",
-    appId: "1:316947066983:web:376e837ecb64e3357264c2",
-    databaseURL: "https://darza-f1e08-default-rtdb.firebaseio.com"
-  };
+    const firebaseConfig = {
+        apiKey: "AIzaSyBMjcGVXoEpSLQQIFY0uDCzq6QGju8j5PQ",
+        authDomain: "darza-f1e08.firebaseapp.com",
+        projectId: "darza-f1e08",
+        databaseURL: "https://darza-f1e08-default-rtdb.firebaseio.com"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const ordersRef = ref(db, 'orders');
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const ordersRef = ref(db, 'orders');
+    let allOrders = {};
 
-  // وظائف التنقل والحماية
-  window.checkAccess = function() {
-    document.getElementById('new-orders').classList.remove('show', 'active');
-    document.getElementById('tab-new').classList.remove('active');
-    document.getElementById('tab-done').classList.add('active');
-    
-    if (sessionStorage.getItem('isLogged') === 'true') {
-        showDoneContent();
-    } else {
-        document.getElementById('passwordSection').style.display = 'block';
-        document.getElementById('doneContent').style.display = 'none';
-    }
-  }
+    // التنقل بين الصفحات
+    window.showTab = (tabId) => {
+        document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+        document.getElementById(tabId).style.display = 'block';
+        document.querySelectorAll('.nav-link').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+    };
 
-  window.verifyPassword = function() {
-    const pass = document.getElementById('passInput').value;
-    if (pass === "2026") {
-        sessionStorage.setItem('isLogged', 'true');
-        showDoneContent();
-    } else {
-        alert("كلمة المرor خاطئة! حاول مجدداً.");
-    }
-  }
+    // حماية الإدارة
+    window.verifyAdmin = () => {
+        const pass = document.getElementById('adminPass').value;
+        if(pass === "2026") {
+            document.getElementById('adminLockSection').style.display = 'none';
+            document.getElementById('adminContent').style.display = 'block';
+        } else {
+            alert("خطأ في كلمة المرور");
+        }
+    };
 
-  window.showNew = function() {
-    document.getElementById('new-orders').classList.add('show', 'active');
-    document.getElementById('tab-new').classList.add('active');
-    document.getElementById('tab-done').classList.remove('active');
-    document.getElementById('passwordSection').style.display = 'none';
-    document.getElementById('doneContent').style.display = 'none';
-  }
+    // إرسال الطلب
+    document.getElementById('orderForm').onsubmit = (e) => {
+        e.preventDefault();
+        const newOrder = {
+            date: new Date().toISOString().split('T')[0],
+            entryUser: document.getElementById('entryUser').value,
+            custName: document.getElementById('custName').value,
+            custAddr: document.getElementById('custAddr').value,
+            custMob: document.getElementById('custMob').value,
+            model: document.getElementById('model').value,
+            size: document.getElementById('size').value,
+            wtHt: document.getElementById('wtHt').value,
+            pageName: document.getElementById('pageName').value,
+            price: parseFloat(document.getElementById('price').value),
+            status: 'new'
+        };
+        push(ordersRef, newOrder);
+        alert("تم الإرسال بنجاح");
+        e.target.reset();
+    };
 
-  function showDoneContent() {
-    document.getElementById('passwordSection').style.display = 'none';
-    document.getElementById('doneContent').style.display = 'block';
-  }
+    // جلب البيانات وعرضها
+    onValue(ordersRef, (snapshot) => {
+        allOrders = snapshot.val() || {};
+        renderOrders();
+    });
 
-  window.lockDone = function() {
-    sessionStorage.removeItem('isLogged');
-    showNew();
-  }
+    window.renderOrders = () => {
+        const query = document.getElementById('globalSearch').value.toLowerCase();
+        const lists = { new: document.getElementById('list-new'), process: document.getElementById('list-process'), done: document.getElementById('list-done') };
+        Object.values(lists).forEach(l => l.innerHTML = '');
 
-  // وظائف البيانات (Firebase)
-  window.sendOrder = function() {
-    const name = document.getElementById('custName').value;
-    const item = document.getElementById('orderItem').value;
-    if(name && item) {
-        push(ordersRef, { name, item, status: 'new' });
-        document.getElementById('custName').value = '';
-        document.getElementById('orderItem').value = '';
-    }
-  };
+        for(let id in allOrders) {
+            const o = allOrders[id];
+            const searchableText = `${o.custName} ${o.custMob} ${o.model} ${o.custAddr} ${o.entryUser} ${o.pageName}`.toLowerCase();
+            
+            if(query && !searchableText.includes(query)) continue;
 
-  window.changeStatus = function(id, newStatus) {
-    update(ref(db, 'orders/' + id), { status: newStatus });
-  };
-
-  window.deleteOrder = function(id) {
-    if(confirm("حذف الطلب نهائياً؟")) remove(ref(db, 'orders/' + id));
-  };
-
-  onValue(ordersRef, (snapshot) => {
-    const data = snapshot.val();
-    const newList = document.getElementById('newList');
-    const doneList = document.getElementById('doneList');
-    newList.innerHTML = ''; doneList.innerHTML = '';
-
-    for (let id in data) {
-        const order = data[id];
-        const html = `
-            <div class="card p-3 ${order.status === 'new' ? 'order-new' : 'order-done'}">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div><strong>${order.name}</strong><br><small class="text-muted">${order.item}</small></div>
-                    <div>
-                        <button class="btn btn-sm ${order.status === 'new' ? 'btn-success' : 'btn-warning'}" 
-                                onclick="changeStatus('${id}', '${order.status === 'new' ? 'done' : 'new'}')">
-                            ${order.status === 'new' ? 'تجهيز (Done)' : 'إرجاع للجديد'}
-                        </button>
-                        ${order.status === 'done' ? `<button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteOrder('${id}')">×</button>` : ''}
+            const card = `
+                <div class="card p-3 ${o.status}-bg shadow-sm">
+                    <strong>${o.custName}</strong>
+                    <div class="small">📞 ${o.custMob} | 📍 ${o.custAddr}</div>
+                    <div class="small text-muted">📦 ${o.model} | نمرة: ${o.size}</div>
+                    <div class="small text-muted">👤 المدخل: ${o.entryUser}</div>
+                    <div class="fw-bold mt-2" style="color:#099999;">${o.price} JOD</div>
+                    <div class="mt-2 d-flex gap-1">
+                        ${o.status === 'new' ? `<button onclick="move('${id}','process')" class="btn btn-sm btn-info w-100">تجهيز</button>` : ''}
+                        ${o.status === 'process' ? `<button onclick="move('${id}','done')" class="btn btn-sm btn-success w-100">إتمام</button>` : ''}
+                        <button onclick="move('${id}','new')" class="btn btn-sm btn-outline-warning">↺</button>
+                        <button onclick="del('${id}')" class="btn btn-sm btn-outline-danger">×</button>
                     </div>
-                </div>
-            </div>`;
-        if(order.status === 'new') newList.insertAdjacentHTML('afterbegin', html);
-        else doneList.insertAdjacentHTML('afterbegin', html);
-    }
-  });
-</script>
+                </div>`;
+            lists[o.status].insertAdjacentHTML('afterbegin', card);
+        }
+    };
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    window.move = (id, newStatus) => update(ref(db, 'orders/' + id), { status: newStatus });
+    window.del = (id) => confirm("حذف نهائي؟") && remove(ref(db, 'orders/' + id));
+
+    // تقارير الموظفين
+    window.calculateEmployeeReport = () => {
+        const from = document.getElementById('repFrom').value;
+        const to = document.getElementById('repTo').value;
+        const user = document.getElementById('repUser').value.toLowerCase();
+        const pricePerOrder = parseFloat(document.getElementById('unitPrice').value) || 0;
+
+        let count = 0;
+        for(let id in allOrders) {
+            const o = allOrders[id];
+            const matchUser = !user || o.entryUser.toLowerCase().includes(user);
+            const matchDate = (!from || o.date >= from) && (!to || o.date <= to);
+            if(matchUser && matchDate) count++;
+        }
+        
+        document.getElementById('repResult').style.display = 'block';
+        document.getElementById('repText').innerHTML = `
+            عدد الطلبات: <strong>${count}</strong> <br>
+            المبلغ المستحق للموظف: <strong>${count * pricePerOrder} JOD</strong>
+        `;
+    };
+
+    // ملخص الحالات
+    window.calculateSummary = () => {
+        const status = document.getElementById('sumStatus').value;
+        let count = 0, total = 0;
+        for(let id in allOrders) {
+            if(allOrders[id].status === status) {
+                count++;
+                total += allOrders[id].price;
+            }
+        }
+        document.getElementById('sumCount').innerText = count;
+        document.getElementById('sumTotal').innerText = total + " JOD";
+    };
+
+</script>
 </body>
 </html>
