@@ -45,12 +45,16 @@
                 <div class="col-md-4"><label>اسم مدخل الطلب</label><input type="text" id="entryUser" class="form-control" required></div>
                 <div class="col-md-4"><label>اسم الزبون</label><input type="text" id="custName" class="form-control" required></div>
                 <div class="col-md-4"><label>عنوان الزبون</label><input type="text" id="custAddr" class="form-control" required></div>
-                <div class="col-md-3"><label>الموبايل</label><input type="text" id="custMob" class="form-control" required></div>
+                <div class="col-md-3">
+                    <label>الموبايل (10 أرقام)</label>
+                    <input type="text" id="custMob" class="form-control" placeholder="07XXXXXXXX" required maxlength="10" minlength="10" pattern="\d{10}" title="يرجى إدخال 10 أرقام فقط">
+                </div>
                 <div class="col-md-3"><label>الموديل</label><input type="text" id="model" class="form-control" required></div>
                 <div class="col-md-3"><label>النمرة</label><input type="text" id="size" class="form-control" required></div>
-                <div class="col-md-3"><label>الوزن/الطول</label><input type="text" id="wtHt" class="form-control" required></div>
-                <div class="col-md-6"><label>اسم الصفحة</label><input type="text" id="pageName" class="form-control" required></div>
-                <div class="col-md-6"><label>السعر شامل التوصيل</label><input type="number" id="price" class="form-control" required></div>
+                <div class="col-md-3"><label>الوزن (kg)</label><input type="text" id="weight" class="form-control" required></div>
+                <div class="col-md-3"><label>الطول (cm)</label><input type="text" id="height" class="form-control" required></div>
+                <div class="col-md-5"><label>اسم الصفحة</label><input type="text" id="pageName" class="form-control" required></div>
+                <div class="col-md-4"><label>السعر شامل التوصيل</label><input type="number" id="price" class="form-control" required></div>
                 <button type="submit" class="btn btn-main w-100 mt-4 py-2">حفظ الطلبية</button>
             </form>
         </div>
@@ -71,11 +75,9 @@
                 <div class="col-md-4"><div class="score-card shadow-sm" style="background:#17a2b8"><h6>قيد التحضير</h6><h2 id="count-process">0</h2></div></div>
                 <div class="col-md-4"><div class="score-card shadow-sm" style="background:#28a745"><h6>الجاهزة</h6><h2 id="count-done">0</h2></div></div>
             </div>
-
             <div class="card p-3 mb-4">
                 <input type="text" id="globalSearch" class="form-control" placeholder="🔍 ابحث في جميع الطلبات..." onkeyup="renderOrders()">
             </div>
-
             <div class="row">
                 <div class="col-md-4"><h5 class="text-center">🆕 جديدة</h5><div id="list-new"></div></div>
                 <div class="col-md-4"><h5 class="text-center">⚙️ تحضير</h5><div id="list-process"></div></div>
@@ -88,14 +90,14 @@
 
 <div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content" id="pdfArea">
+        <div class="modal-content">
             <div class="modal-header bg-light">
                 <h5 class="modal-title">تفاصيل الطلبية</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="modalBody">
                 </div>
-            <div class="modal-footer no-pdf">
+            <div class="modal-footer">
                 <button class="btn btn-dark" onclick="downloadPDF()">تحميل PDF 📄</button>
                 <div id="actionButtons"></div>
             </div>
@@ -130,26 +132,33 @@
         if(document.getElementById('adminPass').value === "2026") {
             document.getElementById('adminLockSection').style.display='none';
             document.getElementById('adminContent').style.display='block';
-        } else { alert("خطأ!"); }
+        } else { alert("كلمة المرور خاطئة!"); }
     };
 
     document.getElementById('orderForm').onsubmit = (e) => {
         e.preventDefault();
+        const mob = document.getElementById('custMob').value;
+        if(mob.length !== 10 || isNaN(mob)) {
+            alert("خطأ: رقم الموبايل يجب أن يتكون من 10 أرقام فقط.");
+            return;
+        }
+
         const d = {
             date: new Date().toLocaleDateString('en-GB'),
             entryUser: document.getElementById('entryUser').value,
             custName: document.getElementById('custName').value,
             custAddr: document.getElementById('custAddr').value,
-            custMob: document.getElementById('custMob').value,
+            custMob: mob,
             model: document.getElementById('model').value,
             size: document.getElementById('size').value,
-            wtHt: document.getElementById('wtHt').value,
+            weight: document.getElementById('weight').value,
+            height: document.getElementById('height').value,
             pageName: document.getElementById('pageName').value,
             price: document.getElementById('price').value,
             status: 'new'
         };
         push(ordersRef, d);
-        alert("تم الحفظ"); e.target.reset();
+        alert("تم حفظ الطلبية بنجاح"); e.target.reset();
     };
 
     onValue(ordersRef, (s) => {
@@ -196,8 +205,9 @@
                 <hr>
                 <div class="col-6"><strong>الموديل:</strong> ${o.model}</div>
                 <div class="col-6"><strong>النمرة:</strong> ${o.size}</div>
-                <div class="col-6"><strong>الوزن/الطول:</strong> ${o.wtHt}</div>
-                <div class="col-6"><h4 style="color:#099999">السعر: ${o.price} JOD</h4></div>
+                <div class="col-6"><strong>الوزن:</strong> ${o.weight} kg</div>
+                <div class="col-6"><strong>الطول:</strong> ${o.height} cm</div>
+                <div class="col-12"><h4 style="color:#099999">السعر الكلي: ${o.price} JOD</h4></div>
             </div>`;
         
         document.getElementById('actionButtons').innerHTML = `
@@ -210,7 +220,7 @@
     };
 
     window.move = (id, s) => { update(ref(db, 'orders/'+id), {status:s}); bootstrap.Modal.getInstance(document.getElementById('detailsModal')).hide(); };
-    window.del = (id) => { if(confirm("حذف؟")) { remove(ref(db, 'orders/'+id)); bootstrap.Modal.getInstance(document.getElementById('detailsModal')).hide(); } };
+    window.del = (id) => { if(confirm("حذف نهائي للطلبية؟")) { remove(ref(db, 'orders/'+id)); bootstrap.Modal.getInstance(document.getElementById('detailsModal')).hide(); } };
 
     window.downloadPDF = () => {
         const element = document.getElementById('modalBody');
