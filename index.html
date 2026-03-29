@@ -1,939 +1,238 @@
 <!DOCTYPE html>
-
-<html lang="ar" dir="rtl" class="light">
-
+<html lang="ar" dir="rtl">
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>DARZA PRO - Enterprise</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <script>
-
-        tailwind.config = {
-
-            darkMode: 'class',
-
-            theme: {
-
-                extend: {
-
-                    fontFamily: { sans: ['Almarai', 'sans-serif'] },
-
-                    colors: { primary: '#099999', primaryDark: '#067a7a', surface: '#f8fafc', surfaceDark: '#0f172a' }
-
-                }
-
-            }
-
-        }
-
-    </script>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-    
-
+    <title>DARZA PRO - النظام المتكامل</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-
-        /* Custom Scrollbar */
-
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-
-        ::-webkit-scrollbar-track { background: transparent; }
-
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-
-        .dark ::-webkit-scrollbar-thumb { background: #475569; }
-
-
-
-        /* Input Fields Base */
-
-        .input-field {
-
-            @apply w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:bg-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all shadow-inner;
-
-        }
-
-
-
-        /* Nav Buttons */
-
-        .nav-btn { @apply text-gray-500 dark:text-gray-400 font-semibold; }
-
-        .nav-btn:hover { @apply bg-gray-100 dark:bg-gray-700 text-primary; }
-
-        .nav-btn.active { @apply bg-primary/10 text-primary border-r-4 border-primary rounded-r-none; }
-
-
-
-        /* Kanban Drag & Drop Styles */
-
-        .kanban-list { min-height: 200px; }
-
-        .kanban-card { 
-
-            @apply bg-white dark:bg-gray-700 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600 cursor-grab active:cursor-grabbing hover:shadow-md transition-all relative overflow-hidden;
-
-        }
-
-        .kanban-card.dragging { opacity: 0.5; transform: scale(0.95); border: 2px dashed #099999; }
-
-        .drag-over { background-color: rgba(9, 153, 153, 0.1); border-radius: 1rem; border: 2px dashed #099999; }
-
-
-
-        /* Animations */
-
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-
-
-        .btn-action { @apply px-4 py-2 rounded-lg font-bold shadow transition-transform hover:scale-105 flex items-center gap-2; }
-
+        body { font-family: 'Almarai', sans-serif; background-color: #f4f7f6; }
+        .navbar { background-color: #099999; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .navbar-brand, .nav-link { color: white !important; font-weight: bold; }
+        .nav-pills .nav-link.active { background-color: white !important; color: #099999 !important; }
+        .btn-main { background-color: #099999; color: white; border: none; }
+        .card { border-radius: 15px; border: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: 0.3s; }
+        .order-card { cursor: pointer; border-right: 8px solid #ddd; margin-bottom: 10px; }
+        .order-card:hover { transform: scale(1.02); }
+        .new-border { border-right-color: #ffc107; }
+        .process-border { border-right-color: #17a2b8; }
+        .done-border { border-right-color: #28a745; }
+        .score-card { text-align: center; padding: 20px; color: white; border-radius: 15px; }
     </style>
-
 </head>
+<body>
 
-<body class="bg-surface dark:bg-surfaceDark text-gray-800 dark:text-gray-200 transition-colors duration-300">
+<nav class="navbar navbar-expand-lg sticky-top mb-4">
+    <div class="container">
+        <a class="navbar-brand">DARZA PRO</a>
+        <ul class="nav nav-pills">
+            <li class="nav-item"><button class="nav-link active" onclick="showTab('tab-entry')">إدخال طلب</button></li>
+            <li class="nav-item"><button class="nav-link" onclick="showTab('tab-manage')">إدارة الطلبات</button></li>
+            <li class="nav-item"><button class="nav-link" onclick="showTab('tab-reports')">التقارير</button></li>
+        </ul>
+    </div>
+</nav>
 
-
-
-    <div id="appContainer" class="flex h-screen overflow-hidden transition-opacity duration-500">
-
-        
-
-        <aside class="w-64 bg-white dark:bg-gray-800 shadow-xl flex flex-col justify-between transition-all duration-300">
-
-            <div>
-
-                <div class="p-6 flex items-center justify-between border-b dark:border-gray-700">
-
-                    <h1 class="text-2xl font-extrabold text-primary tracking-wide">DARZA<span class="text-gray-500 dark:text-gray-400">PRO</span></h1>
-
+<div class="container">
+    
+    <div id="tab-entry" class="tab-content">
+        <div class="card p-4">
+            <h4 style="color: #099999;" class="mb-4 text-center">إضافة طلبية جديدة</h4>
+            <form id="orderForm" class="row g-3">
+                <div class="col-md-4"><label>اسم مدخل الطلب</label><input type="text" id="entryUser" class="form-control" required></div>
+                <div class="col-md-4"><label>اسم الزبون</label><input type="text" id="custName" class="form-control" required></div>
+                <div class="col-md-4"><label>عنوان الزبون</label><input type="text" id="custAddr" class="form-control" required></div>
+                <div class="col-md-3">
+                    <label>الموبايل (10 أرقام)</label>
+                    <input type="text" id="custMob" class="form-control" placeholder="07XXXXXXXX" required maxlength="10" minlength="10" pattern="\d{10}" title="يرجى إدخال 10 أرقام فقط">
                 </div>
-
-                <nav class="p-4 space-y-2">
-
-                    <button class="nav-btn active w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all" data-target="tab-entry">
-
-                        <i class="fas fa-plus-circle text-lg"></i> <span data-i18n="new_order">إدخال طلب</span>
-
-                    </button>
-
-                    <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all" data-target="tab-manage">
-
-                        <i class="fas fa-tasks text-lg"></i> <span data-i18n="manage_orders">إدارة الطلبات</span>
-
-                    </button>
-
-                    <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all" data-target="tab-analytics">
-
-                        <i class="fas fa-chart-pie text-lg"></i> <span data-i18n="reports">التقارير والذكاء</span>
-
-                    </button>
-
-                </nav>
-
-            </div>
-
-            <div class="p-4 border-t dark:border-gray-700 space-y-3">
-
-                <div class="flex justify-between items-center px-2">
-
-                    <button id="themeToggle" class="text-gray-500 hover:text-primary transition-colors"><i class="fas fa-moon text-xl"></i></button>
-
-                    <button id="langToggle" class="text-sm font-bold text-gray-500 hover:text-primary transition-colors">EN/AR</button>
-
-                </div>
-
-            </div>
-
-        </aside>
-
-
-
-        <main class="flex-1 overflow-y-auto p-8 relative">
-
-            <div id="toastContainer" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2"></div>
-
-
-
-            <section id="tab-entry" class="tab-content active-tab fade-in">
-
-                <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-3xl shadow-sm border dark:border-gray-700 p-8">
-
-                    <div class="flex justify-between items-center mb-6">
-
-                        <h2 class="text-2xl font-bold text-primary" data-i18n="new_order">إضافة طلبية جديدة</h2>
-
-                        <button id="saveDraft" class="text-sm text-gray-500 hover:text-primary"><i class="fas fa-save"></i> حفظ كمسودة</button>
-
-                    </div>
-
-                    <form id="orderForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-                        <div class="lg:col-span-3"><label class="block text-sm font-semibold mb-2">اسم مدخل الطلب</label><input type="text" id="entryUser" class="input-field" required></div>
-
-                        
-
-                        <div class="relative">
-
-                            <label class="block text-sm font-semibold mb-2">اسم الزبون</label>
-
-                            <input type="text" id="custName" class="input-field" required autocomplete="off">
-
-                            <div id="customerSuggestions" class="absolute z-10 w-full bg-white dark:bg-gray-700 shadow-lg rounded-b-lg hidden"></div>
-
-                        </div>
-
-                        <div><label class="block text-sm font-semibold mb-2">رقم الموبايل</label><input type="tel" id="custMob" class="input-field" placeholder="07XXXXXXXX" pattern="\d{10}" required></div>
-
-                        <div class="lg:col-span-1"><label class="block text-sm font-semibold mb-2">العنوان</label><input type="text" id="custAddr" class="input-field" required></div>
-
-                        
-
-                        <div><label class="block text-sm font-semibold mb-2">الموديل</label><input type="text" id="model" class="input-field" required></div>
-
-                        <div><label class="block text-sm font-semibold mb-2">النمرة</label><input type="text" id="size" class="input-field" required></div>
-
-                        <div><label class="block text-sm font-semibold mb-2">اسم الصفحة</label><input type="text" id="pageName" class="input-field" required></div>
-
-                        
-
-                        <div><label class="block text-sm font-semibold mb-2">الوزن (kg)</label><input type="number" id="weight" class="input-field" required></div>
-
-                        <div><label class="block text-sm font-semibold mb-2">الطول (cm)</label><input type="number" id="height" class="input-field" required></div>
-
-                        <div><label class="block text-sm font-semibold mb-2">السعر شامل التوصيل</label><div class="relative"><input type="number" id="price" class="input-field pl-10" required><span class="absolute left-3 top-3 text-gray-400">JOD</span></div></div>
-
-                        
-
-                        <div class="lg:col-span-3 mt-4">
-
-                            <button type="submit" class="w-full bg-primary hover:bg-primaryDark text-white py-4 rounded-xl font-bold text-lg transition-transform hover:scale-[1.01] shadow-lg flex justify-center items-center gap-2">
-
-                                <i class="fas fa-check-circle"></i> تأكيد وحفظ الطلبية
-
-                            </button>
-
-                        </div>
-
-                    </form>
-
-                </div>
-
-            </section>
-
-
-
-            <section id="tab-manage" class="tab-content hidden fade-in h-full flex flex-col">
-
-                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-
-                    <div class="relative w-full md:w-96">
-
-                        <i class="fas fa-search absolute right-4 top-3.5 text-gray-400"></i>
-
-                        <input type="text" id="globalSearch" class="w-full pl-4 pr-10 py-3 rounded-xl border dark:border-gray-600 dark:bg-gray-800 focus:ring-2 focus:ring-primary outline-none shadow-sm" placeholder="ابحث بالاسم، الموبايل، أو السعر...">
-
-                    </div>
-
-                    <div class="flex gap-2">
-
-                        <button onclick="exportExcel()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow transition"><i class="fas fa-file-excel"></i> Excel</button>
-
-                    </div>
-
-                </div>
-
-
-
-                <div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 overflow-hidden pb-4">
-
-                    <div class="kanban-column bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-4 flex flex-col border-t-4 border-yellow-400" data-status="new">
-
-                        <div class="flex justify-between items-center mb-4 px-2">
-
-                            <h3 class="font-bold text-lg"><i class="fas fa-inbox text-yellow-400"></i> طلبات جديدة</h3>
-
-                            <span id="count-new" class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-bold">0</span>
-
-                        </div>
-
-                        <div id="list-new" class="kanban-list flex-1 overflow-y-auto space-y-3 p-1"></div>
-
-                    </div>
-
-
-
-                    <div class="kanban-column bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-4 flex flex-col border-t-4 border-blue-400" data-status="process">
-
-                        <div class="flex justify-between items-center mb-4 px-2">
-
-                            <h3 class="font-bold text-lg"><i class="fas fa-cog fa-spin text-blue-400"></i> قيد التحضير</h3>
-
-                            <span id="count-process" class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-bold">0</span>
-
-                        </div>
-
-                        <div id="list-process" class="kanban-list flex-1 overflow-y-auto space-y-3 p-1"></div>
-
-                    </div>
-
-
-
-                    <div class="kanban-column bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-4 flex flex-col border-t-4 border-green-500" data-status="done">
-
-                        <div class="flex justify-between items-center mb-4 px-2">
-
-                            <h3 class="font-bold text-lg"><i class="fas fa-check-double text-green-500"></i> جاهزة للتسليم</h3>
-
-                            <span id="count-done" class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-bold">0</span>
-
-                        </div>
-
-                        <div id="list-done" class="kanban-list flex-1 overflow-y-auto space-y-3 p-1"></div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-
-            <section id="tab-analytics" class="tab-content hidden fade-in">
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-
-                    <div class="bg-gradient-to-br from-primary to-primaryDark p-6 rounded-3xl shadow-lg text-white">
-
-                        <h4 class="text-sm opacity-80 mb-1">إجمالي الإيرادات</h4>
-
-                        <h2 class="text-3xl font-bold" id="kpi-revenue">0 JOD</h2>
-
-                    </div>
-
-                    <div class="bg-gradient-to-br from-blue-500 to-blue-700 p-6 rounded-3xl shadow-lg text-white">
-
-                        <h4 class="text-sm opacity-80 mb-1">إجمالي الطلبات</h4>
-
-                        <h2 class="text-3xl font-bold" id="kpi-orders">0</h2>
-
-                    </div>
-
-                    <div class="bg-gradient-to-br from-purple-500 to-purple-700 p-6 rounded-3xl shadow-lg text-white">
-
-                        <h4 class="text-sm opacity-80 mb-1">الذكاء الاصطناعي: الموديل الأنجح</h4>
-
-                        <h2 class="text-xl font-bold mt-2" id="kpi-top-model">جاري التحليل...</h2>
-
-                    </div>
-
-                </div>
-
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border dark:border-gray-700">
-
-                    <canvas id="revenueChart" height="100"></canvas>
-
-                </div>
-
-            </section>
-
-        </main>
-
+                <div class="col-md-3"><label>الموديل</label><input type="text" id="model" class="form-control" required></div>
+                <div class="col-md-3"><label>النمرة</label><input type="text" id="size" class="form-control" required></div>
+                <div class="col-md-3"><label>الوزن (kg)</label><input type="text" id="weight" class="form-control" required></div>
+                <div class="col-md-3"><label>الطول (cm)</label><input type="text" id="height" class="form-control" required></div>
+                <div class="col-md-5"><label>اسم الصفحة</label><input type="text" id="pageName" class="form-control" required></div>
+                <div class="col-md-4"><label>السعر شامل التوصيل</label><input type="number" id="price" class="form-control" required></div>
+                <button type="submit" class="btn btn-main w-100 mt-4 py-2">حفظ الطلبية</button>
+            </form>
+        </div>
     </div>
 
-
-
-    <div id="detailsModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-sm flex items-center justify-center transition-opacity">
-
-        <div class="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-3xl shadow-2xl transform scale-95 transition-transform" id="printArea">
-
-            <div class="p-6 border-b dark:border-gray-700 flex justify-between items-center">
-
-                <h3 class="text-xl font-bold text-primary">تفاصيل الطلبية #<span id="modalOrderId" class="text-sm text-gray-400"></span></h3>
-
-                <button onclick="closeModal()" class="text-gray-400 hover:text-red-500 transition"><i class="fas fa-times text-xl"></i></button>
-
+    <div id="tab-manage" class="tab-content" style="display:none;">
+        <div id="adminLockSection" class="card p-5 text-center">
+            <h5>هذا القسم محمي للمسؤول</h5>
+            <div class="d-flex justify-content-center mt-3">
+                <input type="password" id="adminPass" class="form-control w-25 me-2" placeholder="باسوورد">
+                <button onclick="verifyAdmin()" class="btn btn-main">دخول</button>
             </div>
-
-            <div class="p-6 grid grid-cols-2 gap-y-4 text-sm" id="modalBodyContent">
-
-                </div>
-
-            <div class="p-6 bg-gray-50 dark:bg-gray-900/50 rounded-b-3xl border-t dark:border-gray-700 flex justify-between items-center" data-html2canvas-ignore>
-
-                <div class="flex gap-2">
-
-                    <button onclick="downloadPDF()" class="btn-action bg-gray-800 text-white"><i class="fas fa-file-pdf"></i> PDF</button>
-
-                    <button onclick="shareWhatsApp()" id="waBtn" class="btn-action bg-green-500 text-white"><i class="fab fa-whatsapp"></i></button>
-
-                </div>
-
-                <div id="modalActions" class="flex gap-2">
-
-                    </div>
-
-            </div>
-
         </div>
 
+        <div id="adminContent" style="display:none;">
+            <div class="row mb-4">
+                <div class="col-md-4"><div class="score-card shadow-sm" style="background:#ffc107"><h6>الجديدة</h6><h2 id="count-new">0</h2></div></div>
+                <div class="col-md-4"><div class="score-card shadow-sm" style="background:#17a2b8"><h6>قيد التحضير</h6><h2 id="count-process">0</h2></div></div>
+                <div class="col-md-4"><div class="score-card shadow-sm" style="background:#28a745"><h6>الجاهزة</h6><h2 id="count-done">0</h2></div></div>
+            </div>
+            <div class="card p-3 mb-4">
+                <input type="text" id="globalSearch" class="form-control" placeholder="🔍 ابحث في جميع الطلبات..." onkeyup="renderOrders()">
+            </div>
+            <div class="row">
+                <div class="col-md-4"><h5 class="text-center">🆕 جديدة</h5><div id="list-new"></div></div>
+                <div class="col-md-4"><h5 class="text-center">⚙️ تحضير</h5><div id="list-process"></div></div>
+                <div class="col-md-4"><h5 class="text-center">✅ جاهزة</h5><div id="list-done"></div></div>
+            </div>
+        </div>
     </div>
 
-
-
-    <script type="module">
-
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
-
-
-
-        // --- Configuration ---
-
-        const firebaseConfig = {
-
-            apiKey: "AIzaSyBMjcGVXoEpSLQQIFY0uDCzq6QGju8j5PQ", 
-
-            authDomain: "darza-f1e08.firebaseapp.com",
-
-            projectId: "darza-f1e08",
-
-            storageBucket: "darza-f1e08.appspot.com",
-
-            messagingSenderId: "123456789",
-
-            appId: "1:123456789:web:abcdef"
-
-        };
-
-
-
-        const app = initializeApp(firebaseConfig);
-
-        const db = getFirestore(app);
-
-        const ordersCol = collection(db, 'orders');
-
-
-
-        // --- Global State ---
-
-        let allOrders = [];
-
-        let revenueChartInstance = null;
-
-        let currentModalOrderId = null;
-
-
-
-        // --- DOM Elements ---
-
-        const DOM = {
-
-            appContainer: document.getElementById('appContainer'),
-
-            themeToggle: document.getElementById('themeToggle'),
-
-            orderForm: document.getElementById('orderForm'),
-
-            globalSearch: document.getElementById('globalSearch'),
-
-            modal: document.getElementById('detailsModal')
-
-        };
-
-
-
-        // --- UI Navigation & Theme ---
-
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-
-            btn.addEventListener('click', (e) => {
-
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-
-                document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-
-                const target = e.currentTarget.getAttribute('data-target');
-
-                e.currentTarget.classList.add('active');
-
-                document.getElementById(target).classList.remove('hidden');
-
-                if(target === 'tab-analytics') renderAnalytics();
-
-            });
-
-        });
-
-
-
-        DOM.themeToggle.addEventListener('click', () => {
-
-            document.documentElement.classList.toggle('dark');
-
-            const isDark = document.documentElement.classList.contains('dark');
-
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-
-            DOM.themeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-
-        });
-
-        if (localStorage.getItem('theme') === 'dark') DOM.themeToggle.click();
-
-
-
-        // --- Data Operations (Firestore) ---
-
-        function initDataListener() {
-
-            const q = query(ordersCol, orderBy('createdAt', 'desc'));
-
-            onSnapshot(q, (snapshot) => {
-
-                allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                renderKanban();
-
-                if(!document.getElementById('tab-analytics').classList.contains('hidden')) renderAnalytics();
-
-            });
-
-        }
-
-
-
-        // Start listening to data immediately
-
-        initDataListener();
-
-
-
-        DOM.orderForm.addEventListener('submit', async (e) => {
-
-            e.preventDefault();
-
-            const payload = {
-
-                entryUser: document.getElementById('entryUser').value,
-
-                custName: document.getElementById('custName').value,
-
-                custMob: document.getElementById('custMob').value,
-
-                custAddr: document.getElementById('custAddr').value,
-
-                model: document.getElementById('model').value,
-
-                size: document.getElementById('size').value,
-
-                pageName: document.getElementById('pageName').value,
-
-                weight: Number(document.getElementById('weight').value),
-
-                height: Number(document.getElementById('height').value),
-
-                price: Number(document.getElementById('price').value),
-
-                status: 'new',
-
-                createdAt: serverTimestamp()
-
-            };
-
-
-
-            try {
-
-                await addDoc(ordersCol, payload);
-
-                showToast('تم حفظ الطلبية بنجاح!', 'success');
-
-                DOM.orderForm.reset();
-
-                localStorage.removeItem('draftOrder');
-
-            } catch (error) {
-
-                showToast('حدث خطأ أثناء الحفظ', 'error');
-
-            }
-
-        });
-
-
-
-        // --- Kanban & Drag-Drop Logic ---
-
-        function renderKanban() {
-
-            const term = DOM.globalSearch.value.toLowerCase();
-
-            const lists = { new: document.getElementById('list-new'), process: document.getElementById('list-process'), done: document.getElementById('list-done') };
-
-            const counts = { new: 0, process: 0, done: 0 };
-
-            
-
-            Object.values(lists).forEach(el => el.innerHTML = '');
-
-
-
-            allOrders.forEach(order => {
-
-                if (term && !Object.values(order).join(' ').toLowerCase().includes(term)) return;
-
-                
-
-                counts[order.status]++;
-
-                const el = document.createElement('div');
-
-                el.className = `kanban-card group`;
-
-                el.draggable = true;
-
-                el.dataset.id = order.id;
-
-                
-
-                // Status indicator line
-
-                const color = order.status === 'new' ? 'bg-yellow-400' : order.status === 'process' ? 'bg-blue-400' : 'bg-green-500';
-
-
-
-                el.innerHTML = `
-
-                    <div class="absolute right-0 top-0 bottom-0 w-1 ${color}"></div>
-
-                    <div class="flex justify-between items-start mb-2 pr-2">
-
-                        <strong class="text-lg">${order.custName}</strong>
-
-                        <span class="text-primary font-bold bg-primary/10 px-2 py-1 rounded-md text-sm">${order.price} JOD</span>
-
-                    </div>
-
-                    <div class="text-sm text-gray-500 dark:text-gray-400 space-y-1 pr-2">
-
-                        <div><i class="fas fa-box text-xs w-4"></i> ${order.model} - ${order.size}</div>
-
-                        <div><i class="fas fa-phone text-xs w-4"></i> ${order.custMob}</div>
-
-                    </div>
-
-                    <div class="mt-3 pt-3 border-t dark:border-gray-600 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
-
-                         <span class="text-xs text-gray-400"><i class="fas fa-clock"></i> ${order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() : 'الآن'}</span>
-
-                         <button class="text-primary hover:text-primaryDark text-sm" onclick="window.openDetails('${order.id}')">التفاصيل <i class="fas fa-chevron-left"></i></button>
-
-                    </div>
-
-                `;
-
-
-
-                el.addEventListener('dragstart', handleDragStart);
-
-                el.addEventListener('dragend', handleDragEnd);
-
-                lists[order.status].appendChild(el);
-
-            });
-
-
-
-            document.getElementById('count-new').textContent = counts.new;
-
-            document.getElementById('count-process').textContent = counts.process;
-
-            document.getElementById('count-done').textContent = counts.done;
-
-        }
-
-
-
-        DOM.globalSearch.addEventListener('input', debounce(renderKanban, 300));
-
-
-
-        // Drag & Drop Handlers
-
-        let draggedItem = null;
-
-        function handleDragStart(e) { draggedItem = this; setTimeout(() => this.classList.add('dragging'), 0); }
-
-        function handleDragEnd() { this.classList.remove('dragging'); draggedItem = null; }
-
-
-
-        document.querySelectorAll('.kanban-column').forEach(col => {
-
-            col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('drag-over'); });
-
-            col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
-
-            col.addEventListener('drop', async e => {
-
-                e.preventDefault();
-
-                col.classList.remove('drag-over');
-
-                const newStatus = col.dataset.status;
-
-                const id = draggedItem.dataset.id;
-
-                const order = allOrders.find(o => o.id === id);
-
-                
-
-                if(order.status !== newStatus) {
-
-                    draggedItem.remove(); // Optimistic UI
-
-                    await updateDoc(doc(db, 'orders', id), { status: newStatus });
-
-                    showToast('تم تحديث حالة الطلب', 'success');
-
-                }
-
-            });
-
-        });
-
-
-
-        // --- Modal & Actions ---
-
-        window.openDetails = (id) => {
-
-            const o = allOrders.find(x => x.id === id);
-
-            currentModalOrderId = id;
-
-            document.getElementById('modalOrderId').textContent = id.slice(0, 8).toUpperCase();
-
-            
-
-            document.getElementById('modalBodyContent').innerHTML = `
-
-                <div class="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg flex justify-between">
-
-                    <span><strong>تاريخ الإدخال:</strong> ${o.createdAt ? new Date(o.createdAt.seconds*1000).toLocaleString('ar-EG') : 'N/A'}</span>
-
-                    <span><strong>المدخل:</strong> ${o.entryUser}</span>
-
+</div>
+
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title">تفاصيل الطلبية</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
                 </div>
-
-                <div><strong class="block text-gray-500 mb-1">الزبون</strong> <div class="text-lg">${o.custName}</div></div>
-
-                <div><strong class="block text-gray-500 mb-1">الموبايل</strong> <div dir="ltr" class="text-right text-lg">${o.custMob}</div></div>
-
-                <div class="col-span-2"><strong class="block text-gray-500 mb-1">العنوان</strong> ${o.custAddr}</div>
-
-                <div class="col-span-2 border-t dark:border-gray-600 my-2"></div>
-
-                <div><strong class="block text-gray-500 mb-1">الموديل</strong> ${o.model}</div>
-
-                <div><strong class="block text-gray-500 mb-1">النمرة</strong> ${o.size}</div>
-
-                <div><strong class="block text-gray-500 mb-1">المقاسات</strong> ${o.weight}kg / ${o.height}cm</div>
-
-                <div><strong class="block text-gray-500 mb-1">الصفحة</strong> ${o.pageName}</div>
-
-                <div class="col-span-2 bg-primary/10 p-4 rounded-xl mt-2 flex justify-between items-center">
-
-                    <span class="text-lg font-bold">المبلغ المطلوب تحصيله:</span>
-
-                    <span class="text-2xl font-extrabold text-primary">${o.price} JOD</span>
-
-                </div>
-
-            `;
-
-
-
-            document.getElementById('waBtn').onclick = () => {
-
-                const text = encodeURIComponent(`مرحباً ${o.custName}، طلبك (مورد: ${o.model}) جاهز للتسليم بقيمة ${o.price} دينار.`);
-
-                window.open(`https://wa.me/962${o.custMob.substring(1)}?text=${text}`, '_blank');
-
-            };
-
-
-
-            let actions = '';
-
-            if (o.status === 'new') actions += `<button class="btn-action bg-blue-500 text-white" onclick="changeStatus('${id}', 'process')">بدء التحضير</button>`;
-
-            if (o.status === 'process') actions += `<button class="btn-action bg-green-500 text-white" onclick="changeStatus('${id}', 'done')">إنهاء وتجهيز</button>`;
-
-            actions += `<button class="btn-action border border-red-500 text-red-500 hover:bg-red-500 hover:text-white" onclick="deleteOrder('${id}')"><i class="fas fa-trash"></i></button>`;
-
-            
-
-            document.getElementById('modalActions').innerHTML = actions;
-
-            DOM.modal.classList.remove('hidden');
-
-        };
-
-
-
-        window.closeModal = () => DOM.modal.classList.add('hidden');
-
-        window.changeStatus = async (id, status) => { await updateDoc(doc(db, 'orders', id), { status }); closeModal(); };
-
-        window.deleteOrder = async (id) => { 
-
-            if(confirm('هل أنت متأكد من حذف هذه الطلبية نهائياً؟')) {
-
-                await deleteDoc(doc(db, 'orders', id));
-
-                closeModal(); showToast('تم الحذف', 'error');
-
-            }
-
-        };
-
-
-
-        // --- Exports & Utils ---
-
-        window.downloadPDF = () => {
-
-            const el = document.getElementById('printArea');
-
-            html2pdf().set({ margin: 1, filename: `Order_${currentModalOrderId}.pdf`, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } }).from(el).save();
-
-        };
-
-
-
-        window.exportExcel = () => {
-
-            const ws = XLSX.utils.json_to_sheet(allOrders.map(o => ({
-
-                "الزبون": o.custName, "الموبايل": o.custMob, "العنوان": o.custAddr, "الموديل": o.model, "السعر": o.price, "الحالة": o.status
-
-            })));
-
-            const wb = XLSX.utils.book_new();
-
-            XLSX.utils.book_append_sheet(wb, ws, "Orders");
-
-            XLSX.writeFile(wb, "Darza_Orders.xlsx");
-
-        };
-
-
-
-        // --- Analytics & AI ---
-
-        function renderAnalytics() {
-
-            const totalRev = allOrders.reduce((sum, o) => sum + (o.status === 'done' ? o.price : 0), 0);
-
-            document.getElementById('kpi-revenue').textContent = `${totalRev} JOD`;
-
-            document.getElementById('kpi-orders').textContent = allOrders.length;
-
-            
-
-            // AI Insight: Top Model
-
-            const models = {}; allOrders.forEach(o => models[o.model] = (models[o.model]||0) + 1);
-
-            const topModel = Object.keys(models).sort((a,b) => models[b]-models[a])[0] || 'لا يوجد بيانات';
-
-            document.getElementById('kpi-top-model').textContent = `🔥 ${topModel}`;
-
-
-
-            // Chart.js Setup
-
-            const ctx = document.getElementById('revenueChart').getContext('2d');
-
-            const counts = [allOrders.filter(o=>o.status==='new').length, allOrders.filter(o=>o.status==='process').length, allOrders.filter(o=>o.status==='done').length];
-
-            
-
-            if(revenueChartInstance) revenueChartInstance.destroy();
-
-            revenueChartInstance = new Chart(ctx, {
-
-                type: 'doughnut',
-
-                data: { labels: ['جديد', 'تحضير', 'جاهز'], datasets: [{ data: counts, backgroundColor: ['#facc15', '#60a5fa', '#22c55e'], borderWidth: 0 }] },
-
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'left' } } }
-
-            });
-
+            <div class="modal-footer">
+                <button class="btn btn-dark" onclick="downloadPDF()">تحميل PDF 📄</button>
+                <div id="actionButtons"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBMjcGVXoEpSLQQIFY0uDCzq6QGju8j5PQ",
+        authDomain: "darza-f1e08.firebaseapp.com",
+        projectId: "darza-f1e08",
+        databaseURL: "https://darza-f1e08-default-rtdb.firebaseio.com"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const ordersRef = ref(db, 'orders');
+    let allOrders = {};
+
+    window.showTab = (id) => {
+        document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+        document.getElementById(id).style.display = 'block';
+        document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+    };
+
+    window.verifyAdmin = () => {
+        if(document.getElementById('adminPass').value === "2026") {
+            document.getElementById('adminLockSection').style.display='none';
+            document.getElementById('adminContent').style.display='block';
+        } else { alert("كلمة المرور خاطئة!"); }
+    };
+
+    document.getElementById('orderForm').onsubmit = (e) => {
+        e.preventDefault();
+        const mob = document.getElementById('custMob').value;
+        if(mob.length !== 10 || isNaN(mob)) {
+            alert("خطأ: رقم الموبايل يجب أن يتكون من 10 أرقام فقط.");
+            return;
         }
 
+        const d = {
+            date: new Date().toLocaleDateString('en-GB'),
+            entryUser: document.getElementById('entryUser').value,
+            custName: document.getElementById('custName').value,
+            custAddr: document.getElementById('custAddr').value,
+            custMob: mob,
+            model: document.getElementById('model').value,
+            size: document.getElementById('size').value,
+            weight: document.getElementById('weight').value,
+            height: document.getElementById('height').value,
+            pageName: document.getElementById('pageName').value,
+            price: document.getElementById('price').value,
+            status: 'new'
+        };
+        push(ordersRef, d);
+        alert("تم حفظ الطلبية بنجاح"); e.target.reset();
+    };
 
+    onValue(ordersRef, (s) => {
+        allOrders = s.val() || {};
+        renderOrders();
+    });
 
-        // Helpers
+    window.renderOrders = () => {
+        const query = document.getElementById('globalSearch').value.toLowerCase();
+        const counts = {new:0, process:0, done:0};
+        const lists = {new: 'list-new', process: 'list-process', done: 'list-done'};
+        Object.values(lists).forEach(id => document.getElementById(id).innerHTML='');
 
-        function debounce(func, wait) { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), wait); }; }
+        for(let id in allOrders){
+            const o = allOrders[id];
+            counts[o.status]++;
+            if(query && !JSON.stringify(o).toLowerCase().includes(query)) continue;
 
-        function showToast(msg, type='info') {
-
-            const t = document.createElement('div');
-
-            t.className = `px-6 py-3 rounded-xl shadow-lg text-white transform transition-all translate-y-[-100%] opacity-0 ${type==='error'?'bg-red-500':'bg-primary'}`;
-
-            t.textContent = msg;
-
-            document.getElementById('toastContainer').appendChild(t);
-
-            setTimeout(() => { t.classList.remove('translate-y-[-100%]', 'opacity-0'); }, 10);
-
-            setTimeout(() => { t.classList.add('opacity-0'); setTimeout(()=>t.remove(), 300); }, 3000);
-
+            const card = `
+                <div class="card p-3 order-card ${o.status}-border shadow-sm" onclick="openDetails('${id}')">
+                    <strong>${o.custName}</strong>
+                    <div class="small text-muted">${o.model} - ${o.custMob}</div>
+                    <div class="fw-bold" style="color:#099999">${o.price} JOD</div>
+                </div>`;
+            document.getElementById(lists[o.status]).insertAdjacentHTML('afterbegin', card);
         }
+        document.getElementById('count-new').innerText = counts.new;
+        document.getElementById('count-process').innerText = counts.process;
+        document.getElementById('count-done').innerText = counts.done;
+    };
 
+    window.openDetails = (id) => {
+        const o = allOrders[id];
+        const modalBody = document.getElementById('modalBody');
+        modalBody.innerHTML = `
+            <div class="row g-3 p-2" dir="rtl" style="text-align:right">
+                <div class="col-6"><strong>التاريخ:</strong> ${o.date}</div>
+                <div class="col-6"><strong>المدخل:</strong> ${o.entryUser}</div>
+                <hr>
+                <div class="col-12"><h5>الزبون: ${o.custName}</h5></div>
+                <div class="col-12"><strong>العنوان:</strong> ${o.custAddr}</div>
+                <div class="col-6"><strong>الموبايل:</strong> ${o.custMob}</div>
+                <div class="col-6"><strong>الصفحة:</strong> ${o.pageName}</div>
+                <hr>
+                <div class="col-6"><strong>الموديل:</strong> ${o.model}</div>
+                <div class="col-6"><strong>النمرة:</strong> ${o.size}</div>
+                <div class="col-6"><strong>الوزن:</strong> ${o.weight} kg</div>
+                <div class="col-6"><strong>الطول:</strong> ${o.height} cm</div>
+                <div class="col-12"><h4 style="color:#099999">السعر الكلي: ${o.price} JOD</h4></div>
+            </div>`;
+        
+        document.getElementById('actionButtons').innerHTML = `
+            ${o.status === 'new' ? `<button class="btn btn-info text-white" onclick="move('${id}','process')">تجهيز</button>` : ''}
+            ${o.status === 'process' ? `<button class="btn btn-success" onclick="move('${id}','done')">إتمام</button>` : ''}
+            <button class="btn btn-warning" onclick="move('${id}','new')">إرجاع</button>
+            <button class="btn btn-danger" onclick="del('${id}')">حذف</button>
+        `;
+        new bootstrap.Modal(document.getElementById('detailsModal')).show();
+    };
 
+    window.move = (id, s) => { update(ref(db, 'orders/'+id), {status:s}); bootstrap.Modal.getInstance(document.getElementById('detailsModal')).hide(); };
+    window.del = (id) => { if(confirm("حذف نهائي للطلبية؟")) { remove(ref(db, 'orders/'+id)); bootstrap.Modal.getInstance(document.getElementById('detailsModal')).hide(); } };
 
-        // Auto-Draft Form Data
-
-        DOM.orderForm.addEventListener('input', () => {
-
-            const fd = new FormData(DOM.orderForm);
-
-            const data = Object.fromEntries(fd.entries());
-
-            localStorage.setItem('draftOrder', JSON.stringify(data));
-
+    window.downloadPDF = () => {
+        const element = document.getElementById('modalBody');
+        html2canvas(element, { scale: 2 }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            pdf.addImage(imgData, 'PNG', 10, 10, 190, 0);
+            pdf.save(`Order_${Date.now()}.pdf`);
         });
-
-    </script>
-
+    };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>
