@@ -251,11 +251,23 @@
             connStatus.innerHTML = isReady ? '<i class="fas fa-wifi"></i> متصل' : '<i class="fas fa-exclamation-triangle"></i> محلي (غير متصل)';
         };
 
-        // Firebase Initialization with Error Handling
+        // Fallback Connection Status if Firebase hangs
+        setTimeout(() => {
+            if(!window.isFirebaseReady) {
+                setConnectionStatus(false);
+                window.renderKanban();
+            }
+        }, 2000);
+
+        // Firebase Initialization with Full Config & Error Handling
         try {
             const app = initializeApp({
                 apiKey: "AIzaSyBMjcGVXoEpSLQQIFY0uDCzq6QGju8j5PQ", 
+                authDomain: "darza-f1e08.firebaseapp.com",
                 projectId: "darza-f1e08",
+                storageBucket: "darza-f1e08.appspot.com",
+                messagingSenderId: "123456789", 
+                appId: "1:123456789:web:abcdef" 
             });
             db = getFirestore(app);
             ordersCol = collection(db, 'orders');
@@ -429,9 +441,9 @@
                 console.warn("Status update fallback:", err);
                 const o = window.allOrders.find(x=>x.id===id);
                 if(o) o.status = status;
-                window.renderKanban();
                 window.showToast('تم التحديث محلياً', 'info');
             }
+            window.renderKanban(); 
             window.closeModal();
         };
 
@@ -449,9 +461,9 @@
             } catch (err) {
                 console.warn("Delete fallback:", err);
                 window.allOrders = window.allOrders.filter(x=>x.id !== id);
-                window.renderKanban();
                 window.showToast('تم الحذف محلياً', 'info');
             }
+            window.renderKanban(); 
             window.closeModal();
         };
 
@@ -465,8 +477,12 @@
             
             Object.values(lists).forEach(el => el.innerHTML = '');
 
+            if (window.allOrders.length === 0) {
+                lists.new.innerHTML = "<div class='text-center text-gray-400 py-6 w-full text-sm font-bold'>لا يوجد طلبات حالياً</div>";
+            }
+
             window.allOrders.forEach(order => {
-                if (term && !Object.values(order).join(' ').toLowerCase().includes(term)) return;
+                if (term && !Object.values(order).map(v => String(v || '')).join(' ').toLowerCase().includes(term)) return;
                 if (!lists[order.status]) return;
 
                 counts[order.status]++;
@@ -491,7 +507,7 @@
                          <span class="text-xs text-gray-400"><i class="fas fa-clock"></i> ${order.createdAt ? new Date(order.createdAt).toLocaleDateString('ar-EG') : 'الآن'}</span>
                          <button class="text-primary hover:text-primaryDark text-sm font-bold" onclick="window.openDetails('${order.id}')">التفاصيل <i class="fas fa-chevron-left"></i></button>
                     </div>
-                    ${order.id.startsWith('local_') ? '<span class="absolute top-2 left-2 text-xs text-red-500 font-bold" title="غير متزامن"><i class="fas fa-cloud-upload-alt"></i></span>' : ''}
+                    ${order.id.startsWith('local_') ? '<span class="absolute top-2 left-2 text-xs text-red-500 font-bold" title="بيانات محلية غير متزامنة"><i class="fas fa-cloud-upload-alt"></i></span>' : ''}
                 `;
 
                 el.addEventListener('dragstart', function() { window.draggedItem = this; setTimeout(() => this.classList.add('dragging'), 0); });
