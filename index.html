@@ -28,7 +28,6 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .dark ::-webkit-scrollbar-thumb { background: #475569; }
 
-        /* تعديل لون الخط ليكون أسود داكن في خانات الإدخال */
         .input-field {
             @apply w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:bg-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all shadow-inner text-black dark:text-white font-semibold;
         }
@@ -79,12 +78,13 @@
         </aside>
 
         <main class="flex-1 overflow-y-auto p-8 relative">
-            <div id="toastContainer" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2"></div>
+            <div id="toastContainer" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
             <section id="tab-entry" class="tab-content active-tab fade-in">
                 <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-3xl shadow-sm border dark:border-gray-700 p-8">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-2xl font-bold text-primary">إضافة طلبية جديدة</h2>
+                        <span id="connectionStatus" class="text-sm font-bold px-3 py-1 rounded-full bg-gray-200 text-gray-600">جاري التحقق من الاتصال...</span>
                     </div>
                     <form id="orderForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div class="lg:col-span-3"><label class="block text-sm font-semibold mb-2">اسم مدخل الطلب</label><input type="text" id="entryUser" class="input-field" required></div>
@@ -101,7 +101,7 @@
                         <div><label class="block text-sm font-semibold mb-2">السعر شامل التوصيل</label><div class="relative"><input type="number" id="price" class="input-field pl-10" required><span class="absolute left-3 top-3 text-gray-400">JOD</span></div></div>
                         
                         <div class="lg:col-span-3 mt-4">
-                            <button type="submit" class="w-full bg-primary hover:bg-primaryDark text-white py-4 rounded-xl font-bold text-lg transition-transform hover:scale-[1.01] shadow-lg flex justify-center items-center gap-2">
+                            <button id="submitBtn" type="submit" class="w-full bg-primary hover:bg-primaryDark text-white py-4 rounded-xl font-bold text-lg transition-all hover:scale-[1.01] shadow-lg flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:scale-100">
                                 <i class="fas fa-check-circle"></i> تأكيد وحفظ الطلبية
                             </button>
                         </div>
@@ -187,7 +187,7 @@
                                 </tr>
                             </thead>
                             <tbody id="reportTableBody" class="divide-y dark:divide-gray-700">
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -212,12 +212,19 @@
         </div>
     </div>
 
-    <script>
-        // Global variables safely accessible by inline onclick
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+
+        // Global State
         window.allOrders = [];
         window.currentModalOrder = null;
+        window.isFirebaseReady = false;
+        
+        let db = null;
+        let ordersCol = null;
 
-        // Theme Toggle
+        // UI & Theme Setup
         const themeToggle = document.getElementById('themeToggle');
         themeToggle.addEventListener('click', () => {
             document.documentElement.classList.toggle('dark');
@@ -227,7 +234,6 @@
         });
         if (localStorage.getItem('theme') === 'dark') themeToggle.click();
 
-        // Tabs Logic
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -238,24 +244,126 @@
             });
         });
 
-        // Search & Helpers
-        function debounce(func, wait) { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), wait); }; }
-        document.getElementById('globalSearch').addEventListener('input', debounce(() => window.renderKanban(), 300));
+        const connStatus = document.getElementById('connectionStatus');
+        const setConnectionStatus = (isReady) => {
+            window.isFirebaseReady = isReady;
+            connStatus.className = `text-sm font-bold px-3 py-1 rounded-full ${isReady ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
+            connStatus.innerHTML = isReady ? '<i class="fas fa-wifi"></i> متصل' : '<i class="fas fa-exclamation-triangle"></i> محلي (غير متصل)';
+        };
 
-        function showToast(msg, type='info') {
-            const t = document.createElement('div');
-            t.className = `px-6 py-3 rounded-xl shadow-lg text-white transform transition-all translate-y-[-100%] opacity-0 ${type==='error'?'bg-red-500':'bg-primary'}`;
-            t.textContent = msg;
-            document.getElementById('toastContainer').appendChild(t);
-            setTimeout(() => t.classList.remove('translate-y-[-100%]', 'opacity-0'), 10);
-            setTimeout(() => { t.classList.add('opacity-0'); setTimeout(()=>t.remove(), 300); }, 3000);
+        // Firebase Initialization with Error Handling
+        try {
+            const app = initializeApp({
+                apiKey: "AIzaSyBMjcGVXoEpSLQQIFY0uDCzq6QGju8j5PQ", 
+                projectId: "darza-f1e08",
+            });
+            db = getFirestore(app);
+            ordersCol = collection(db, 'orders');
+
+            onSnapshot(query(ordersCol, orderBy('createdAt', 'desc')), (snapshot) => {
+                setConnectionStatus(true);
+                window.allOrders = snapshot.docs.map(d => ({ 
+                    id: d.id, 
+                    ...d.data(),
+                    createdAt: d.data().createdAt ? d.data().createdAt.toMillis() : Date.now()
+                }));
+                window.renderKanban();
+            }, (error) => {
+                console.error("Firestore Error:", error);
+                setConnectionStatus(false);
+            });
+        } catch(err) {
+            console.error("Firebase Config Error:", err);
+            setConnectionStatus(false);
+            window.renderKanban();
         }
 
-        // Window exposed functions for buttons
+        // Reusable Toast
+        window.showToast = (msg, type='info') => {
+            const t = document.createElement('div');
+            t.className = `px-6 py-3 rounded-xl shadow-lg text-white font-bold transform transition-all translate-y-[-100%] opacity-0 ${type==='error'?'bg-red-500':(type==='success'?'bg-green-500':'bg-primary')}`;
+            t.innerHTML = msg;
+            document.getElementById('toastContainer').appendChild(t);
+            setTimeout(() => t.classList.remove('translate-y-[-100%]', 'opacity-0'), 10);
+            setTimeout(() => { t.classList.add('opacity-0'); setTimeout(()=>t.remove(), 300); }, 4000);
+        };
+
+        // Advanced Form Submission
+        const orderForm = document.getElementById('orderForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const originalBtnHTML = submitBtn.innerHTML;
+
+        const saveLocallyFallback = (payload) => {
+            const localPayload = {
+                ...payload,
+                id: 'local_' + Math.random().toString(36).substring(2, 9),
+                createdAt: Date.now()
+            };
+            window.allOrders.unshift(localPayload);
+            window.renderKanban();
+        };
+
+        orderForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // UI State: Loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+
+            const payload = {
+                entryUser: document.getElementById('entryUser').value.trim(),
+                custName: document.getElementById('custName').value.trim(),
+                custMob: document.getElementById('custMob').value.trim(),
+                custAddr: document.getElementById('custAddr').value.trim(),
+                model: document.getElementById('model').value.trim(),
+                size: document.getElementById('size').value.trim(),
+                pageName: document.getElementById('pageName').value.trim(),
+                weight: Number(document.getElementById('weight').value),
+                height: Number(document.getElementById('height').value),
+                price: Number(document.getElementById('price').value),
+                status: 'new'
+            };
+
+            try {
+                if (window.isFirebaseReady && ordersCol) {
+                    try {
+                        const payloadWithTime = { ...payload, createdAt: serverTimestamp() };
+                        
+                        // Prevent silent hang using a race condition (Timeout after 5 seconds)
+                        const addDocPromise = addDoc(ordersCol, payloadWithTime);
+                        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000));
+                        
+                        await Promise.race([addDocPromise, timeoutPromise]);
+                        
+                        window.showToast('<i class="fas fa-check"></i> تم حفظ الطلبية بنجاح!', 'success');
+                        orderForm.reset();
+                    } catch (fbError) {
+                        console.error("Firebase AddDoc Failed:", fbError);
+                        saveLocallyFallback(payload);
+                        window.showToast('<i class="fas fa-exclamation-circle"></i> تعذر الاتصال بالسيرفر. تم الحفظ محلياً!', 'error');
+                        orderForm.reset();
+                    }
+                } else {
+                    console.warn("Offline mode active. Saving locally.");
+                    saveLocallyFallback(payload);
+                    window.showToast('<i class="fas fa-wifi"></i> النظام غير متصل. تم الحفظ محلياً.', 'error');
+                    orderForm.reset();
+                }
+            } catch (globalErr) {
+                console.error("Unexpected Application Error:", globalErr);
+                window.showToast('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.', 'error');
+            } finally {
+                // UI State: Reset
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHTML;
+            }
+        });
+
+        // Expose Global UI Functions safely
         window.closeModal = () => document.getElementById('detailsModal').classList.add('hidden');
         
         window.exportExcel = () => {
-            if(window.allOrders.length === 0) return showToast('لا يوجد بيانات للتصدير', 'error');
+            if(window.allOrders.length === 0) return window.showToast('لا يوجد بيانات للتصدير', 'error');
             const ws = XLSX.utils.json_to_sheet(window.allOrders.map(o => ({
                 "التاريخ": o.createdAt ? new Date(o.createdAt).toLocaleDateString('ar-EG') : '',
                 "الزبون": o.custName, "الموبايل": o.custMob, "العنوان": o.custAddr, "الموديل": o.model, "النمرة": o.size, "الصفحة": o.pageName, "السعر": o.price, "المدخل": o.entryUser, "الحالة": o.status
@@ -288,7 +396,7 @@
                 <div><strong class="block text-gray-500 mb-1">النمرة</strong> ${o.size}</div>
                 <div><strong class="block text-gray-500 mb-1">الوزن / الطول</strong> ${o.weight}kg / ${o.height}cm</div>
                 <div class="col-span-2 bg-primary/10 p-4 rounded-xl mt-2 flex justify-between items-center border border-primary/20">
-                    <span class="text-lg font-bold text-gray-700 dark:text-gray-200">المبلغ المطلوب تحصيله:</span>
+                    <span class="text-lg font-bold text-gray-700 dark:text-gray-200">المبلغ المطلوب:</span>
                     <span class="text-2xl font-extrabold text-primary">${o.price} JOD</span>
                 </div>
             `;
@@ -307,7 +415,110 @@
             document.getElementById('detailsModal').classList.remove('hidden');
         };
 
-        // UI function for generating the report
+        window.updateDBStatus = async (id, status) => {
+            try {
+                if(window.isFirebaseReady && !id.startsWith('local_')) {
+                    const updatePromise = updateDoc(doc(db, 'orders', id), { status });
+                    const timeout = new Promise((_, r) => setTimeout(()=>r(new Error('timeout')), 4000));
+                    await Promise.race([updatePromise, timeout]);
+                    window.showToast('تم تحديث الحالة بنجاح', 'success');
+                } else {
+                    throw new Error("Local fallback triggered");
+                }
+            } catch (err) {
+                console.warn("Status update fallback:", err);
+                const o = window.allOrders.find(x=>x.id===id);
+                if(o) o.status = status;
+                window.renderKanban();
+                window.showToast('تم التحديث محلياً', 'info');
+            }
+            window.closeModal();
+        };
+
+        window.deleteDBOrder = async (id) => {
+            if(!confirm('هل أنت متأكد من الحذف نهائياً؟')) return;
+            try {
+                if(window.isFirebaseReady && !id.startsWith('local_')) {
+                    const deletePromise = deleteDoc(doc(db, 'orders', id));
+                    const timeout = new Promise((_, r) => setTimeout(()=>r(new Error('timeout')), 4000));
+                    await Promise.race([deletePromise, timeout]);
+                    window.showToast('تم حذف الطلبية', 'success');
+                } else {
+                    throw new Error("Local fallback triggered");
+                }
+            } catch (err) {
+                console.warn("Delete fallback:", err);
+                window.allOrders = window.allOrders.filter(x=>x.id !== id);
+                window.renderKanban();
+                window.showToast('تم الحذف محلياً', 'info');
+            }
+            window.closeModal();
+        };
+
+        function debounce(func, wait) { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), wait); }; }
+        document.getElementById('globalSearch').addEventListener('input', debounce(() => window.renderKanban(), 300));
+
+        window.renderKanban = () => {
+            const term = document.getElementById('globalSearch').value.toLowerCase();
+            const lists = { new: document.getElementById('list-new'), process: document.getElementById('list-process'), done: document.getElementById('list-done') };
+            const counts = { new: 0, process: 0, done: 0 };
+            
+            Object.values(lists).forEach(el => el.innerHTML = '');
+
+            window.allOrders.forEach(order => {
+                if (term && !Object.values(order).join(' ').toLowerCase().includes(term)) return;
+                if (!lists[order.status]) return;
+
+                counts[order.status]++;
+                const el = document.createElement('div');
+                el.className = `kanban-card group ${order.id.startsWith('local_') ? 'border-dashed border-red-300' : ''}`;
+                el.draggable = true;
+                el.dataset.id = order.id;
+                
+                const color = order.status === 'new' ? 'bg-yellow-400' : order.status === 'process' ? 'bg-blue-400' : 'bg-green-500';
+
+                el.innerHTML = `
+                    <div class="absolute right-0 top-0 bottom-0 w-1 ${color}"></div>
+                    <div class="flex justify-between items-start mb-2 pr-2">
+                        <strong class="text-lg">${order.custName}</strong>
+                        <span class="text-primary font-bold bg-primary/10 px-2 py-1 rounded-md text-sm">${order.price} JOD</span>
+                    </div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400 space-y-1 pr-2">
+                        <div><i class="fas fa-box text-xs w-4"></i> ${order.model} - ${order.size}</div>
+                        <div><i class="fas fa-phone text-xs w-4"></i> ${order.custMob}</div>
+                    </div>
+                    <div class="mt-3 pt-3 border-t dark:border-gray-600 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                         <span class="text-xs text-gray-400"><i class="fas fa-clock"></i> ${order.createdAt ? new Date(order.createdAt).toLocaleDateString('ar-EG') : 'الآن'}</span>
+                         <button class="text-primary hover:text-primaryDark text-sm font-bold" onclick="window.openDetails('${order.id}')">التفاصيل <i class="fas fa-chevron-left"></i></button>
+                    </div>
+                    ${order.id.startsWith('local_') ? '<span class="absolute top-2 left-2 text-xs text-red-500 font-bold" title="غير متزامن"><i class="fas fa-cloud-upload-alt"></i></span>' : ''}
+                `;
+
+                el.addEventListener('dragstart', function() { window.draggedItem = this; setTimeout(() => this.classList.add('dragging'), 0); });
+                el.addEventListener('dragend', function() { this.classList.remove('dragging'); window.draggedItem = null; });
+                lists[order.status].appendChild(el);
+            });
+
+            document.getElementById('count-new').textContent = counts.new;
+            document.getElementById('count-process').textContent = counts.process;
+            document.getElementById('count-done').textContent = counts.done;
+        };
+
+        // Drag & Drop
+        document.querySelectorAll('.kanban-column').forEach(col => {
+            col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('drag-over'); });
+            col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
+            col.addEventListener('drop', e => {
+                e.preventDefault();
+                col.classList.remove('drag-over');
+                if(!window.draggedItem) return;
+                const newStatus = col.dataset.status;
+                const id = window.draggedItem.dataset.id;
+                window.updateDBStatus(id, newStatus);
+            });
+        });
+
+        // Advanced Reporting
         window.generateFilteredReport = () => {
             const f = {
                 entryUser: document.getElementById('f-entryUser').value.trim().toLowerCase(),
@@ -361,158 +572,6 @@
 
             document.getElementById('reportCount').textContent = `النتيجة: ${results.length} طلب`;
             document.getElementById('reportContainer').classList.remove('hidden');
-        };
-
-        window.renderKanban = () => {
-            const term = document.getElementById('globalSearch').value.toLowerCase();
-            const lists = { new: document.getElementById('list-new'), process: document.getElementById('list-process'), done: document.getElementById('list-done') };
-            const counts = { new: 0, process: 0, done: 0 };
-            
-            Object.values(lists).forEach(el => el.innerHTML = '');
-
-            window.allOrders.forEach(order => {
-                if (term && !Object.values(order).join(' ').toLowerCase().includes(term)) return;
-                if (!lists[order.status]) return;
-
-                counts[order.status]++;
-                const el = document.createElement('div');
-                el.className = `kanban-card group`;
-                el.draggable = true;
-                el.dataset.id = order.id;
-                
-                const color = order.status === 'new' ? 'bg-yellow-400' : order.status === 'process' ? 'bg-blue-400' : 'bg-green-500';
-
-                el.innerHTML = `
-                    <div class="absolute right-0 top-0 bottom-0 w-1 ${color}"></div>
-                    <div class="flex justify-between items-start mb-2 pr-2">
-                        <strong class="text-lg">${order.custName}</strong>
-                        <span class="text-primary font-bold bg-primary/10 px-2 py-1 rounded-md text-sm">${order.price} JOD</span>
-                    </div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400 space-y-1 pr-2">
-                        <div><i class="fas fa-box text-xs w-4"></i> ${order.model} - ${order.size}</div>
-                        <div><i class="fas fa-phone text-xs w-4"></i> ${order.custMob}</div>
-                    </div>
-                    <div class="mt-3 pt-3 border-t dark:border-gray-600 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                         <span class="text-xs text-gray-400"><i class="fas fa-clock"></i> ${order.createdAt ? new Date(order.createdAt).toLocaleDateString('ar-EG') : 'الآن'}</span>
-                         <button class="text-primary hover:text-primaryDark text-sm font-bold" onclick="window.openDetails('${order.id}')">التفاصيل <i class="fas fa-chevron-left"></i></button>
-                    </div>
-                `;
-
-                el.addEventListener('dragstart', function() { window.draggedItem = this; setTimeout(() => this.classList.add('dragging'), 0); });
-                el.addEventListener('dragend', function() { this.classList.remove('dragging'); window.draggedItem = null; });
-                lists[order.status].appendChild(el);
-            });
-
-            document.getElementById('count-new').textContent = counts.new;
-            document.getElementById('count-process').textContent = counts.process;
-            document.getElementById('count-done').textContent = counts.done;
-        };
-
-        // Setup Drag & Drop zones
-        document.querySelectorAll('.kanban-column').forEach(col => {
-            col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('drag-over'); });
-            col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
-            col.addEventListener('drop', e => {
-                e.preventDefault();
-                col.classList.remove('drag-over');
-                if(!window.draggedItem) return;
-                const newStatus = col.dataset.status;
-                const id = window.draggedItem.dataset.id;
-                if(window.updateDBStatus) window.updateDBStatus(id, newStatus);
-            });
-        });
-    </script>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
-
-        // تم عزل قاعدة البيانات بـ try-catch لضمان عمل الأزرار حتى لو فشل الاتصال بقاعدة البيانات
-        let db = null;
-        let ordersCol = null;
-
-        try {
-            const app = initializeApp({
-                apiKey: "AIzaSyBMjcGVXoEpSLQQIFY0uDCzq6QGju8j5PQ", 
-                projectId: "darza-f1e08",
-            });
-            db = getFirestore(app);
-            ordersCol = collection(db, 'orders');
-
-            onSnapshot(query(ordersCol, orderBy('createdAt', 'desc')), (snapshot) => {
-                window.allOrders = snapshot.docs.map(d => ({ 
-                    id: d.id, 
-                    ...d.data(),
-                    createdAt: d.data().createdAt ? d.data().createdAt.toMillis() : Date.now()
-                }));
-                window.renderKanban();
-            });
-        } catch(err) {
-            console.error("Firebase not configured correctly, using local memory.", err);
-            // Fallback for demonstration if Firebase API key is fake
-            if(window.allOrders.length === 0) window.renderKanban();
-        }
-
-        // Form Submission
-        document.getElementById('orderForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = {
-                entryUser: document.getElementById('entryUser').value,
-                custName: document.getElementById('custName').value,
-                custMob: document.getElementById('custMob').value,
-                custAddr: document.getElementById('custAddr').value,
-                model: document.getElementById('model').value,
-                size: document.getElementById('size').value,
-                pageName: document.getElementById('pageName').value,
-                weight: Number(document.getElementById('weight').value),
-                height: Number(document.getElementById('height').value),
-                price: Number(document.getElementById('price').value),
-                status: 'new',
-                createdAt: new Date()
-            };
-
-            if(ordersCol) {
-                try {
-                    await addDoc(ordersCol, payload);
-                    const t = document.createElement('div');
-                    t.className = `px-6 py-3 rounded-xl shadow-lg text-white bg-primary fixed top-5 left-1/2 transform -translate-x-1/2 z-50`;
-                    t.textContent = 'تم حفظ الطلبية بنجاح!';
-                    document.body.appendChild(t);
-                    setTimeout(() => t.remove(), 3000);
-                    document.getElementById('orderForm').reset();
-                } catch(error) { console.error(error); }
-            } else {
-                // Local memory fallback
-                payload.id = Math.random().toString(36).substring(7);
-                payload.createdAt = Date.now();
-                window.allOrders.unshift(payload);
-                window.renderKanban();
-                document.getElementById('orderForm').reset();
-                alert("تم الحفظ في الذاكرة المؤقتة (تأكد من إعدادات Firebase)");
-            }
-        });
-
-        // Expose DB update functions
-        window.updateDBStatus = async (id, status) => {
-            if(db) {
-                await updateDoc(doc(db, 'orders', id), { status });
-            } else {
-                const o = window.allOrders.find(x=>x.id===id);
-                if(o) o.status = status;
-                window.renderKanban();
-            }
-            window.closeModal();
-        };
-
-        window.deleteDBOrder = async (id) => {
-            if(!confirm('هل أنت متأكد من الحذف نهائياً؟')) return;
-            if(db) {
-                await deleteDoc(doc(db, 'orders', id));
-            } else {
-                window.allOrders = window.allOrders.filter(x=>x.id !== id);
-                window.renderKanban();
-            }
-            window.closeModal();
         };
     </script>
 </body>
