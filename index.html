@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DARZA PRO - Enterprise Orders Management</title>
+    <title>DARZA PRO - Enterprise Order Management V2.0</title>
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,16 +15,18 @@
             --primary: #099999;
             --primary-dark: #067070;
             --secondary: #2b2d42;
-            --bg-color: #f8f9fa;
+            --bg-color: #f0f2f5;
             --card-bg: #ffffff;
-            --text-dark: #333;
-            --text-light: #8d99ae;
+            --text-dark: #2d3436;
+            --text-light: #636e72;
             --status-new: #ffc107;
             --status-process: #17a2b8;
             --status-done: #28a745;
-            --shadow: 0 8px 24px rgba(0,0,0,0.05);
+            --status-delivered: #273c75; /* لون الحالة الجديدة */
+            --shadow-sm: 0 4px 6px rgba(0,0,0,0.04);
+            --shadow-md: 0 10px 20px rgba(0,0,0,0.08);
             --border-radius: 16px;
-            --transition: all 0.3s ease;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         body { 
@@ -36,121 +38,138 @@
 
         /* Navbar */
         .navbar { 
-            background: var(--card-bg); 
-            box-shadow: var(--shadow); 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-sm); 
             padding: 1rem 0;
             margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
         }
-        .navbar-brand { color: var(--primary) !important; font-weight: 800; font-size: 1.5rem; }
+        .navbar-brand { color: var(--primary) !important; font-weight: 800; font-size: 1.5rem; letter-spacing: -0.5px; }
         .nav-pills .nav-link { 
             color: var(--text-light); 
             font-weight: 700; 
             border-radius: 12px;
-            padding: 0.75rem 1.5rem;
+            padding: 0.75rem 1.2rem;
             transition: var(--transition);
+            margin: 0 4px;
         }
-        .nav-pills .nav-link:hover { background-color: rgba(9, 153, 153, 0.1); color: var(--primary); }
-        .nav-pills .nav-link.active { background-color: var(--primary) !important; color: white !important; box-shadow: 0 4px 12px rgba(9, 153, 153, 0.3); }
+        .nav-pills .nav-link:hover { background-color: rgba(9, 153, 153, 0.08); color: var(--primary); transform: translateY(-1px); }
+        .nav-pills .nav-link.active { background-color: var(--primary) !important; color: white !important; box-shadow: 0 6px 15px rgba(9, 153, 153, 0.35); }
 
         /* UI Elements */
         .card { 
             border-radius: var(--border-radius); 
-            border: none; 
-            box-shadow: var(--shadow); 
+            border: 1px solid rgba(0,0,0,0.03); 
+            box-shadow: var(--shadow-sm); 
             transition: var(--transition);
             background: var(--card-bg);
         }
+        .card:hover { box-shadow: var(--shadow-md); }
         .form-control, .form-select {
-            border-radius: 10px;
-            border: 1px solid #e0e0e0;
-            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            border: 1px solid #dfe6e9;
+            padding: 0.8rem 1rem;
             transition: var(--transition);
+            background-color: #fcfcfc;
         }
         .form-control:focus, .form-select:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 0.25rem rgba(9, 153, 153, 0.25);
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(9, 153, 153, 0.15);
         }
-        .btn-main { background-color: var(--primary); color: white; border: none; border-radius: 10px; padding: 0.75rem 1.5rem; font-weight: 700; transition: var(--transition); }
-        .btn-main:hover { background-color: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(9, 153, 153, 0.3); color: white;}
+        .btn-main { background-color: var(--primary); color: white; border: none; border-radius: 12px; padding: 0.8rem 1.5rem; font-weight: 700; transition: var(--transition); }
+        .btn-main:hover { background-color: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(9, 153, 153, 0.3); color: white;}
 
         /* Kanban Board */
-        .kanban-board { display: flex; gap: 1.5rem; overflow-x: auto; padding-bottom: 1rem; }
-        .kanban-column { flex: 1; min-width: 300px; background: #f1f3f5; border-radius: var(--border-radius); padding: 1rem; display: flex; flex-direction: column; }
-        .kanban-column-header { font-weight: 700; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #e9ecef; display: flex; justify-content: space-between; align-items: center;}
-        .kanban-items { flex-grow: 1; min-height: 200px; }
+        .kanban-board { display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 1.5rem; scroll-behavior: smooth; }
+        .kanban-column { flex: 1; min-width: 280px; background: #f4f6f8; border-radius: var(--border-radius); padding: 1.2rem; display: flex; flex-direction: column; border: 1px solid #edf2f7; }
+        .kanban-column-header { font-weight: 800; margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 2px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;}
+        .kanban-items { flex-grow: 1; min-height: 300px; }
         
         /* Order Cards */
         .order-card { 
             cursor: grab; 
             border-right: 6px solid #ddd; 
-            margin-bottom: 1rem; 
-            padding: 1rem;
+            margin-bottom: 1.2rem; 
+            padding: 1.2rem;
             position: relative;
-            overflow: hidden;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .order-card:active { cursor: grabbing; }
-        .order-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+        .order-card:active { cursor: grabbing; transform: scale(0.98); }
+        .order-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
         .new-border { border-right-color: var(--status-new); }
         .process-border { border-right-color: var(--status-process); }
         .done-border { border-right-color: var(--status-done); }
+        .delivered-border { border-right-color: var(--status-delivered); }
         
-        .card-ghost { opacity: 0.4; background-color: #f8f9fa; border: 2px dashed var(--primary); }
+        .card-ghost { opacity: 0.5; background-color: #f8f9fa; border: 2px dashed var(--primary); transform: scale(1.02); }
 
         /* Dashboard KPIs */
-        .kpi-card { padding: 1.5rem; color: white; border-radius: var(--border-radius); display: flex; align-items: center; justify-content: space-between; }
-        .kpi-card i { font-size: 2.5rem; opacity: 0.8; }
-        .kpi-title { font-size: 1rem; font-weight: 600; opacity: 0.9; }
-        .kpi-value { font-size: 2rem; font-weight: 800; margin: 0; }
+        .kpi-card { padding: 1.8rem; color: white; border-radius: var(--border-radius); display: flex; align-items: center; justify-content: space-between; position: relative; overflow: hidden; }
+        .kpi-card::after { content: ''; position: absolute; top: -50%; right: -20%; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%; transform: rotate(45deg); }
+        .kpi-card i { font-size: 3rem; opacity: 0.9; z-index: 1; }
+        .kpi-title { font-size: 1.1rem; font-weight: 600; opacity: 0.9; margin-bottom: 0.5rem; z-index: 1; position: relative; }
+        .kpi-value { font-size: 2.2rem; font-weight: 800; margin: 0; z-index: 1; position: relative; }
         .bg-gradient-primary { background: linear-gradient(135deg, var(--primary) 0%, #11cdef 100%); }
-        .bg-gradient-warning { background: linear-gradient(135deg, #f5365c 0%, #f56036 100%); }
+        .bg-gradient-warning { background: linear-gradient(135deg, #f5365c 0%, #fb6340 100%); }
         .bg-gradient-success { background: linear-gradient(135deg, #2dce89 0%, #2dcecc 100%); }
         .bg-gradient-info { background: linear-gradient(135deg, #1171ef 0%, #11cdef 100%); }
+        .bg-gradient-dark { background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); }
 
         /* Priority & Tags */
-        .badge-priority-high { background-color: #f5365c; }
-        .badge-priority-med { background-color: #fb6340; }
-        .badge-priority-low { background-color: #2dce89; }
+        .badge-priority-high { background-color: #ffeaa7; color: #d63031; border: 1px solid #d63031; }
+        .badge-priority-med { background-color: #eccc68; color: #2f3542; }
+        .badge-priority-low { background-color: #7bed9f; color: #2f3542; }
+        .role-badge { padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+        .role-admin { background-color: rgba(9, 153, 153, 0.15); color: var(--primary-dark); }
+        .role-user { background-color: rgba(108, 117, 125, 0.15); color: #6c757d; }
 
         /* Table */
-        .table-custom { background: white; border-radius: var(--border-radius); overflow: hidden; box-shadow: var(--shadow); }
-        .table-custom th { background: var(--secondary); color: white; font-weight: 600; border: none; padding: 1rem; }
-        .table-custom td { padding: 1rem; vertical-align: middle; border-bottom: 1px solid #edf2f9; }
-        .table-custom tr:hover { background-color: #f8f9fa; }
+        .table-custom { background: white; border-radius: var(--border-radius); overflow: hidden; box-shadow: var(--shadow-sm); }
+        .table-custom th { background: var(--secondary); color: white; font-weight: 600; border: none; padding: 1.2rem 1rem; position: sticky; top: 0; z-index: 10; }
+        .table-custom td { padding: 1.2rem 1rem; vertical-align: middle; border-bottom: 1px solid #f1f2f6; transition: background 0.2s; }
+        .table-custom tbody tr:hover td { background-color: #f8f9fa; }
 
         /* Auth Screen */
         #authScreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.95); z-index: 9999;
-            display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
         }
 
-        /* Loading Skeleton */
-        .skeleton { background: #eee; background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%); border-radius: 5px; background-size: 200% 100%; animation: 1.5s shine linear infinite; }
-        @keyframes shine { to { background-position-x: -200%; } }
-
-        /* Scrollbar */
+        /* Utilities */
+        .admin-only { display: none; }
+        .chart-container { position: relative; height: 300px; width: 100%; }
+        
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #b2bec3; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
     </style>
 </head>
 <body>
 
 <div id="authScreen">
-    <div class="card p-5 text-center" style="max-width: 400px; width: 90%;">
-        <h2 style="color: var(--primary); font-weight: 800; margin-bottom: 1rem;">DARZA PRO</h2>
-        <p class="text-muted mb-4">الرجاء تسجيل الدخول للمتابعة</p>
+    <div class="card p-5 text-center shadow-lg" style="max-width: 420px; width: 90%; border-radius: 24px;">
+        <div class="mb-4">
+            <i class="fas fa-gem fa-3x text-primary mb-3"></i>
+            <h2 style="color: var(--primary); font-weight: 800;">DARZA PRO</h2>
+            <span class="badge bg-dark rounded-pill">Enterprise Edition v2.0</span>
+        </div>
         <form id="loginForm">
-            <div class="input-group mb-3">
-                <span class="input-group-text bg-white"><i class="fas fa-user text-muted"></i></span>
-                <input type="text" id="loginUser" class="form-control border-start-0" placeholder="اسم المستخدم" required>
+            <div class="input-group mb-3 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                <span class="input-group-text bg-white border-0"><i class="fas fa-user text-muted"></i></span>
+                <input type="text" id="loginUser" class="form-control border-0 bg-white" placeholder="اسم المستخدم" required>
             </div>
-            <div class="input-group mb-4">
-                <span class="input-group-text bg-white"><i class="fas fa-lock text-muted"></i></span>
-                <input type="password" id="loginPass" class="form-control border-start-0" placeholder="كلمة المرور" required>
+            <div class="input-group mb-4 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                <span class="input-group-text bg-white border-0"><i class="fas fa-lock text-muted"></i></span>
+                <input type="password" id="loginPass" class="form-control border-0 bg-white" placeholder="كلمة المرور" required>
             </div>
-            <button type="submit" class="btn btn-main w-100">دخول <i class="fas fa-sign-in-alt ms-2"></i></button>
+            <button type="submit" class="btn btn-main w-100 py-3 fs-5 shadow">تسجيل الدخول <i class="fas fa-sign-in-alt ms-2"></i></button>
         </form>
     </div>
 </div>
@@ -158,255 +177,301 @@
 <div id="appContainer" style="display: none;">
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container-fluid px-4">
-            <a class="navbar-brand"><i class="fas fa-box-open me-2"></i> DARZA PRO</a>
+            <a class="navbar-brand"><i class="fas fa-gem me-2"></i> DARZA PRO</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="nav nav-pills ms-auto me-3 align-items-center">
-                    <li class="nav-item me-2"><button class="nav-link active" onclick="app.showTab('tab-dashboard')"><i class="fas fa-chart-pie me-1"></i> لوحة القيادة</button></li>
-                    <li class="nav-item me-2"><button class="nav-link" onclick="app.showTab('tab-entry')"><i class="fas fa-plus-circle me-1"></i> إدخال طلب</button></li>
-                    <li class="nav-item me-2"><button class="nav-link" onclick="app.showTab('tab-kanban')"><i class="fas fa-columns me-1"></i> بورد الطلبات</button></li>
+                    <li class="nav-item"><button class="nav-link active" onclick="app.showTab('tab-dashboard')"><i class="fas fa-chart-pie me-1"></i> لوحة القيادة</button></li>
+                    <li class="nav-item"><button class="nav-link" onclick="app.showTab('tab-entry')"><i class="fas fa-plus-circle me-1"></i> إدخال طلب</button></li>
+                    <li class="nav-item"><button class="nav-link" onclick="app.showTab('tab-kanban')"><i class="fas fa-columns me-1"></i> بورد الطلبات</button></li>
                     <li class="nav-item"><button class="nav-link" onclick="app.showTab('tab-reports')"><i class="fas fa-table me-1"></i> التقارير والبحث</button></li>
+                    <li class="nav-item admin-only"><button class="nav-link" onclick="app.showTab('tab-logs')"><i class="fas fa-history me-1"></i> سجل التعديلات</button></li>
                 </ul>
                 <div class="d-flex align-items-center border-start ps-3 ms-3">
-                    <span id="currentUserDisplay" class="fw-bold text-dark me-3"></span>
-                    <button class="btn btn-sm btn-outline-danger" onclick="app.logout()"><i class="fas fa-sign-out-alt"></i></button>
+                    <div class="text-end me-3">
+                        <div id="currentUserDisplay" class="fw-bold text-dark lh-1"></div>
+                        <small id="userRoleBadge" class="role-badge mt-1 d-inline-block"></small>
+                    </div>
+                    <button class="btn btn-light text-danger shadow-sm rounded-circle p-2" onclick="app.logout()" title="تسجيل الخروج"><i class="fas fa-power-off"></i></button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <div class="container-fluid px-4">
+    <div class="container-fluid px-4 pb-5">
         
         <div id="tab-dashboard" class="tab-content">
             <div class="row g-4 mb-4">
-                <div class="col-xl-3 col-md-6">
-                    <div class="kpi-card bg-gradient-primary">
+                <div class="col-xl-2 col-md-4 col-sm-6">
+                    <div class="kpi-card bg-gradient-primary h-100">
                         <div><p class="kpi-title">إجمالي الطلبات</p><h3 class="kpi-value" id="kpi-total">0</h3></div>
-                        <i class="fas fa-boxes"></i>
+                        <i class="fas fa-boxes position-absolute" style="right: 10px; bottom: 10px; opacity: 0.2; font-size: 5rem;"></i>
                     </div>
                 </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="kpi-card bg-gradient-warning">
-                        <div><p class="kpi-title">طلبات جديدة</p><h3 class="kpi-value" id="kpi-new">0</h3></div>
-                        <i class="fas fa-star"></i>
+                <div class="col-xl-2 col-md-4 col-sm-6">
+                    <div class="kpi-card bg-gradient-warning h-100">
+                        <div><p class="kpi-title">جديدة</p><h3 class="kpi-value" id="kpi-new">0</h3></div>
+                        <i class="fas fa-star position-absolute" style="right: 10px; bottom: 10px; opacity: 0.2; font-size: 5rem;"></i>
                     </div>
                 </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="kpi-card bg-gradient-success">
+                <div class="col-xl-2 col-md-4 col-sm-6">
+                    <div class="kpi-card bg-gradient-success h-100">
+                        <div><p class="kpi-title">تم التسليم</p><h3 class="kpi-value" id="kpi-delivered">0</h3></div>
+                        <i class="fas fa-check-double position-absolute" style="right: 10px; bottom: 10px; opacity: 0.2; font-size: 5rem;"></i>
+                    </div>
+                </div>
+                <div class="col-xl-2 col-md-4 col-sm-6">
+                    <div class="kpi-card bg-gradient-dark h-100">
+                        <div><p class="kpi-title">نسبة الإنجاز</p><h3 class="kpi-value" id="kpi-completion">0%</h3></div>
+                        <i class="fas fa-chart-line position-absolute" style="right: 10px; bottom: 10px; opacity: 0.2; font-size: 5rem;"></i>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-md-8 col-sm-12">
+                    <div class="kpi-card bg-gradient-info h-100">
                         <div><p class="kpi-title">إجمالي الإيرادات</p><h3 class="kpi-value" id="kpi-revenue">0 <small class="fs-6">JOD</small></h3></div>
-                        <i class="fas fa-money-bill-wave"></i>
+                        <i class="fas fa-money-bill-wave position-absolute" style="right: 10px; bottom: 10px; opacity: 0.2; font-size: 5rem;"></i>
                     </div>
                 </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="kpi-card bg-gradient-info">
-                        <div><p class="kpi-title">متوسط سعر الطلب</p><h3 class="kpi-value" id="kpi-avg">0 <small class="fs-6">JOD</small></h3></div>
-                        <i class="fas fa-chart-line"></i>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-lg-4">
+                    <div class="card p-4 h-100">
+                        <h5 class="mb-4 fw-bold text-secondary"><i class="fas fa-chart-pie me-2"></i> توزيع حالات الطلبات</h5>
+                        <div class="chart-container"><canvas id="statusChart"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card p-4 h-100">
+                        <h5 class="mb-4 fw-bold text-secondary"><i class="fas fa-filter me-2"></i> مسار الإنجاز (Funnel)</h5>
+                        <div class="chart-container"><canvas id="funnelChart"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card p-4 h-100">
+                        <h5 class="mb-4 fw-bold text-secondary"><i class="fas fa-users me-2"></i> الطلبات حسب المستخدم</h5>
+                        <div class="chart-container"><canvas id="userChart"></canvas></div>
                     </div>
                 </div>
             </div>
 
             <div class="row g-4">
-                <div class="col-lg-4">
-                    <div class="card p-4 h-100">
-                        <h5 class="mb-4 fw-bold">حالة الطلبات</h5>
-                        <canvas id="statusChart"></canvas>
-                    </div>
-                </div>
                 <div class="col-lg-8">
                     <div class="card p-4 h-100">
-                        <h5 class="mb-4 fw-bold">الإيرادات حسب الموديل (Top 5)</h5>
-                        <canvas id="modelChart"></canvas>
+                        <h5 class="mb-4 fw-bold text-secondary"><i class="fas fa-chart-area me-2"></i> إيرادات الموديلات (Top 7)</h5>
+                        <div class="chart-container" style="height: 250px;"><canvas id="modelChart"></canvas></div>
                     </div>
                 </div>
-                <div class="col-12">
-                    <div class="card p-4">
-                        <h5 class="mb-4 fw-bold">نمو الطلبات عبر الزمن</h5>
-                        <canvas id="timelineChart" height="80"></canvas>
+                <div class="col-lg-4">
+                    <div class="card p-4 h-100">
+                        <h5 class="mb-4 fw-bold text-secondary"><i class="fas fa-exclamation-circle me-2"></i> الطلبات حسب الأولوية</h5>
+                        <div class="chart-container" style="height: 250px;"><canvas id="priorityChart"></canvas></div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div id="tab-entry" class="tab-content" style="display:none;">
-            <div class="card p-4 mx-auto" style="max-width: 900px;">
-                <h4 class="mb-4 fw-bold text-center" style="color: var(--primary);">إضافة طلبية جديدة</h4>
-                <form id="orderForm" class="row g-3">
+            <div class="card p-5 mx-auto shadow" style="max-width: 900px;">
+                <div class="text-center mb-5">
+                    <h3 class="fw-bold" style="color: var(--primary);">إضافة طلبية جديدة</h3>
+                    <p class="text-muted">الرجاء تعبئة كافة الحقول بدقة</p>
+                </div>
+                <form id="orderForm" class="row g-4">
                     <div class="col-md-6">
-                        <label class="form-label text-muted fw-bold small"><i class="fas fa-user"></i> المدخل</label>
-                        <input type="text" id="entryUser" class="form-control bg-light" readonly>
+                        <label class="form-label text-muted fw-bold small"><i class="fas fa-user text-primary"></i> المدخل الحالي</label>
+                        <input type="text" id="entryUser" class="form-control bg-light border-0 fw-bold" readonly>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label text-muted fw-bold small"><i class="fas fa-calendar"></i> التاريخ</label>
-                        <input type="text" id="entryDate" class="form-control bg-light" readonly>
+                        <label class="form-label text-muted fw-bold small"><i class="fas fa-calendar text-primary"></i> تاريخ الإدخال</label>
+                        <input type="text" id="entryDate" class="form-control bg-light border-0 fw-bold" readonly>
                     </div>
                     
-                    <div class="col-12"><hr class="text-muted"></div>
+                    <div class="col-12"><hr class="text-muted opacity-25"></div>
 
                     <div class="col-md-4">
-                        <label class="form-label">اسم الزبون</label>
+                        <label class="form-label fw-bold">اسم الزبون <span class="text-danger">*</span></label>
                         <input type="text" id="custName" class="form-control" required placeholder="الاسم الرباعي">
                     </div>
                     <div class="col-md-5">
-                        <label class="form-label">عنوان الزبون</label>
+                        <label class="form-label fw-bold">عنوان الزبون <span class="text-danger">*</span></label>
                         <input type="text" id="custAddr" class="form-control" required placeholder="المحافظة - المنطقة - الشارع">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">الموبايل</label>
+                        <label class="form-label fw-bold">الموبايل <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text" dir="ltr">+962</span>
+                            <span class="input-group-text bg-light" dir="ltr">+962</span>
                             <input type="text" id="custMob" class="form-control" placeholder="7XXXXXXXX" required maxlength="9" pattern="\d{9}" title="9 أرقام بدون الصفر">
                         </div>
                     </div>
 
                     <div class="col-md-3">
-                        <label class="form-label">الموديل</label>
-                        <input type="text" id="model" class="form-control" required list="modelList">
+                        <label class="form-label fw-bold">الموديل <span class="text-danger">*</span></label>
+                        <input type="text" id="model" class="form-control" required list="modelList" placeholder="اختر او اكتب">
                         <datalist id="modelList"></datalist>
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label">النمرة</label>
+                        <label class="form-label fw-bold">النمرة <span class="text-danger">*</span></label>
                         <input type="text" id="size" class="form-control" required>
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label">الوزن (kg)</label>
+                        <label class="form-label fw-bold">الوزن <small class="text-muted">(kg)</small> <span class="text-danger">*</span></label>
                         <input type="number" step="0.1" id="weight" class="form-control" required>
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label">الطول (cm)</label>
+                        <label class="form-label fw-bold">الطول <small class="text-muted">(cm)</small> <span class="text-danger">*</span></label>
                         <input type="number" id="height" class="form-control" required>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">السعر الكلي (JOD)</label>
+                        <label class="form-label fw-bold">السعر الكلي <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <input type="number" step="0.5" id="price" class="form-control fw-bold text-success" required>
-                            <span class="input-group-text">JOD</span>
+                            <span class="input-group-text bg-success text-white border-success">JOD</span>
                         </div>
                     </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label">اسم الصفحة (المصدر)</label>
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold">اسم الصفحة (المصدر) <span class="text-danger">*</span></label>
                         <input type="text" id="pageName" class="form-control" required>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">الأولوية</label>
+                        <label class="form-label fw-bold">الأولوية</label>
                         <select id="priority" class="form-select">
                             <option value="low">عادية</option>
                             <option value="med" selected>متوسطة</option>
                             <option value="high">عالية (مستعجل)</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">علامات (Tags)</label>
-                        <input type="text" id="tags" class="form-control" placeholder="vip, هدية, ...">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">علامات (Tags)</label>
+                        <input type="text" id="tags" class="form-control" placeholder="مثال: vip, هدية, توصيل مجاني">
                     </div>
 
-                    <div class="col-12 mt-4">
-                        <button type="submit" class="btn btn-main w-100 py-3 fs-5"><i class="fas fa-save me-2"></i> حفظ الطلبية بنجاح</button>
+                    <div class="col-12 mt-5">
+                        <button type="submit" class="btn btn-main w-100 py-3 fs-5 rounded-pill"><i class="fas fa-save me-2"></i> حفظ واعتماد الطلب</button>
                     </div>
                 </form>
             </div>
         </div>
 
         <div id="tab-kanban" class="tab-content" style="display:none;">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="fw-bold"><i class="fas fa-columns text-primary me-2"></i> إدارة سير العمل (Drag & Drop)</h4>
-                <div class="input-group" style="width: 300px;">
-                    <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
-                    <input type="text" id="kanbanSearch" class="form-control border-start-0" placeholder="بحث سريع في البورد..." onkeyup="app.filterKanban()">
+            <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded-4 shadow-sm">
+                <h4 class="fw-bold m-0"><i class="fas fa-columns text-primary me-2"></i> إدارة سير العمل</h4>
+                <div class="input-group" style="width: 350px;">
+                    <span class="input-group-text bg-light border-0"><i class="fas fa-search"></i></span>
+                    <input type="text" id="kanbanSearch" class="form-control bg-light border-0" placeholder="بحث سريع في البورد..." onkeyup="app.filterKanban()">
                 </div>
             </div>
 
             <div class="kanban-board">
                 <div class="kanban-column shadow-sm">
-                    <div class="kanban-column-header text-warning">
-                        <span><i class="fas fa-star me-2"></i> طلبات جديدة</span>
-                        <span class="badge bg-warning text-dark rounded-pill" id="kb-count-new">0</span>
+                    <div class="kanban-column-header" style="color: var(--status-new)">
+                        <span><i class="fas fa-star me-2"></i> 1. طلبات جديدة</span>
+                        <span class="badge bg-warning text-dark rounded-pill fs-6" id="kb-count-new">0</span>
                     </div>
                     <div class="kanban-items" id="kb-new" data-status="new"></div>
                 </div>
                 
                 <div class="kanban-column shadow-sm">
-                    <div class="kanban-column-header text-info">
-                        <span><i class="fas fa-cog fa-spin me-2"></i> قيد التحضير</span>
-                        <span class="badge bg-info text-white rounded-pill" id="kb-count-process">0</span>
+                    <div class="kanban-column-header" style="color: var(--status-process)">
+                        <span><i class="fas fa-cog fa-spin me-2"></i> 2. قيد التحضير</span>
+                        <span class="badge bg-info text-white rounded-pill fs-6" id="kb-count-process">0</span>
                     </div>
                     <div class="kanban-items" id="kb-process" data-status="process"></div>
                 </div>
 
                 <div class="kanban-column shadow-sm">
-                    <div class="kanban-column-header text-success">
-                        <span><i class="fas fa-check-circle me-2"></i> جاهزة للتسليم</span>
-                        <span class="badge bg-success text-white rounded-pill" id="kb-count-done">0</span>
+                    <div class="kanban-column-header" style="color: var(--status-done)">
+                        <span><i class="fas fa-box me-2"></i> 3. جاهزة للتسليم</span>
+                        <span class="badge bg-success text-white rounded-pill fs-6" id="kb-count-done">0</span>
                     </div>
                     <div class="kanban-items" id="kb-done" data-status="done"></div>
+                </div>
+
+                <div class="kanban-column shadow-sm" style="background: rgba(39, 60, 117, 0.05); border-color: rgba(39, 60, 117, 0.1);">
+                    <div class="kanban-column-header" style="color: var(--status-delivered)">
+                        <span><i class="fas fa-check-double me-2"></i> 4. تم التسليم</span>
+                        <span class="badge text-white rounded-pill fs-6" style="background: var(--status-delivered)" id="kb-count-delivered">0</span>
+                    </div>
+                    <div class="kanban-items" id="kb-delivered" data-status="delivered"></div>
                 </div>
             </div>
         </div>
 
         <div id="tab-reports" class="tab-content" style="display:none;">
-            <div class="card p-4 mb-4 shadow-sm">
-                <h5 class="fw-bold mb-3"><i class="fas fa-filter text-primary me-2"></i> فلاتر متقدمة</h5>
+            <div class="card p-4 mb-4 shadow-sm border-0">
+                <h5 class="fw-bold mb-4 text-secondary"><i class="fas fa-filter text-primary me-2"></i> محرك البحث والفلاتر</h5>
                 <div class="row g-3">
                     <div class="col-md-3">
-                        <label class="form-label small">بحث عام</label>
+                        <label class="form-label small fw-bold">بحث شامل</label>
                         <input type="text" id="filterGeneral" class="form-control" placeholder="اسم، موبايل، عنوان...">
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label small">الحالة</label>
+                        <label class="form-label small fw-bold">حالة الطلب</label>
                         <select id="filterStatus" class="form-select">
                             <option value="">الكل</option>
                             <option value="new">جديدة</option>
-                            <option value="process">تحضير</option>
+                            <option value="process">قيد التحضير</option>
                             <option value="done">جاهزة</option>
+                            <option value="delivered">تم التسليم</option>
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label small">المدخل</label>
+                        <label class="form-label small fw-bold">المدخل</label>
                         <select id="filterUser" class="form-select"><option value="">الكل</option></select>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label small">التاريخ (من - إلى)</label>
+                        <label class="form-label small fw-bold">النطاق الزمني (من - إلى)</label>
                         <div class="input-group">
                             <input type="date" id="filterDateFrom" class="form-control">
                             <input type="date" id="filterDateTo" class="form-control">
                         </div>
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
-                        <button class="btn btn-outline-secondary w-100" onclick="app.resetFilters()"><i class="fas fa-undo"></i> إعادة ضبط</button>
+                        <button class="btn btn-secondary w-100" onclick="app.resetFilters()"><i class="fas fa-undo me-1"></i> إعادة ضبط</button>
                     </div>
                 </div>
             </div>
 
-            <div class="card p-3 mb-3 bg-light d-flex flex-row align-items-center justify-content-between" id="bulkActionsPanel" style="display: none !important;">
-                <div>
-                    <span class="fw-bold me-3">تم تحديد: <span id="selectedCount" class="text-primary fs-5">0</span></span>
-                    <button class="btn btn-sm btn-danger me-2" onclick="app.bulkDelete()"><i class="fas fa-trash"></i> حذف</button>
-                    <div class="btn-group me-2">
-                        <button type="button" class="btn btn-sm btn-info text-white dropdown-toggle" data-bs-toggle="dropdown">تغيير الحالة</button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#" onclick="app.bulkStatus('new')">جديدة</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="app.bulkStatus('process')">تحضير</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="app.bulkStatus('done')">جاهزة</a></li>
-                        </ul>
+            <div class="card p-3 mb-4 admin-only" id="bulkActionsPanel" style="display: none !important; background: #fff3cd; border: 1px solid #ffe69c;">
+                <div class="d-flex flex-wrap align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="fw-bold me-2"><i class="fas fa-check-square text-warning me-1"></i> محدد: <span id="selectedCount" class="text-danger fs-4 mx-1">0</span></span>
+                        
+                        <button class="btn btn-danger" onclick="app.bulkDelete()"><i class="fas fa-trash me-1"></i> حذف</button>
+                        
+                        <div class="dropdown">
+                            <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-exchange-alt me-1"></i> نقل إلى حالة
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item fw-bold text-warning" href="#" onclick="app.bulkStatus('new')">جديدة</a></li>
+                                <li><a class="dropdown-item fw-bold text-info" href="#" onclick="app.bulkStatus('process')">تحضير</a></li>
+                                <li><a class="dropdown-item fw-bold text-success" href="#" onclick="app.bulkStatus('done')">جاهزة</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item fw-bold" style="color: var(--status-delivered)" href="#" onclick="app.bulkStatus('delivered')">تم التسليم</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="input-group" style="width: auto;">
+                            <select id="bulkAssignUser" class="form-select border-warning">
+                                <option value="">ترحيل لمستخدم...</option>
+                            </select>
+                            <button class="btn btn-warning text-dark fw-bold" onclick="app.bulkAssign()"><i class="fas fa-share"></i> ترحيل</button>
+                        </div>
                     </div>
-                    <div class="input-group input-group-sm d-inline-flex w-auto me-2">
-                        <select id="bulkAssignUser" class="form-select" style="min-width: 150px;">
-                            <option value="">اختر مستخدم للترحيل...</option>
-                        </select>
-                        <button class="btn btn-warning text-dark" onclick="app.bulkAssign()"><i class="fas fa-exchange-alt"></i> ترحيل</button>
-                    </div>
+                    <button class="btn btn-success" onclick="app.exportExcel()"><i class="fas fa-file-excel me-2"></i> تصدير لـ Excel</button>
                 </div>
-                <button class="btn btn-success" onclick="app.exportExcel()"><i class="fas fa-file-excel me-2"></i> تصدير المحدد لـ Excel</button>
             </div>
 
-            <div class="table-responsive table-custom">
+            <div class="table-responsive table-custom" style="max-height: 600px; overflow-y: auto;">
                 <table class="table table-hover align-middle mb-0" id="reportsTable">
                     <thead>
                         <tr>
-                            <th style="width: 40px;"><input type="checkbox" class="form-check-input" id="selectAll" onchange="app.toggleSelectAll()"></th>
-                            <th>#ID</th>
+                            <th style="width: 40px;" class="admin-only"><input type="checkbox" class="form-check-input border-secondary" id="selectAll" onchange="app.toggleSelectAll()"></th>
+                            <th>رقم الطلب</th>
                             <th>الزبون</th>
                             <th>الموبايل</th>
                             <th>الموديل</th>
@@ -414,12 +479,37 @@
                             <th>الحالة</th>
                             <th>المدخل</th>
                             <th>التاريخ</th>
-                            <th>إجراءات</th>
+                            <th class="admin-only text-center">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
                         </tbody>
                 </table>
+            </div>
+        </div>
+
+        <div id="tab-logs" class="tab-content" style="display:none;">
+            <div class="card p-4 shadow-sm border-0">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold text-secondary m-0"><i class="fas fa-history text-primary me-2"></i> سجل حركات النظام (Audit Log)</h5>
+                    <span class="badge bg-light text-dark border"><i class="fas fa-shield-alt text-success me-1"></i> Admin Only</span>
+                </div>
+                
+                <div class="table-responsive table-custom" style="max-height: 600px; overflow-y: auto;">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>الوقت والتاريخ</th>
+                                <th>المستخدم</th>
+                                <th>نوع العملية</th>
+                                <th>معرف الطلب (ID)</th>
+                                <th>التفاصيل</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logsTableBody">
+                            </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -446,11 +536,21 @@
     const firebaseApp = initializeApp(firebaseConfig);
     const db = getDatabase(firebaseApp);
     const ordersRef = ref(db, 'orders');
+    const logsRef = ref(db, 'logs');
 
-    // State Structure
+    // 1. نظام صلاحيات المستخدمين المدمج
+    const USERS_DB = {
+        'admin': { pass: '2026', role: 'Admin', name: 'المدير العام' },
+        'basel': { pass: '2026', role: 'Admin', name: 'باسل غانم' },
+        'user':  { pass: '1234', role: 'User',  name: 'موظف إدخال' }
+    };
+
     window.app = {
         currentUser: null,
+        currentUserRole: null,
+        currentUserName: null,
         data: {},
+        logsData: {},
         charts: {},
         selectedIds: new Set(),
 
@@ -458,39 +558,73 @@
             this.bindLogin();
             document.getElementById('orderForm').addEventListener('submit', this.saveOrder.bind(this));
             
-            // Filters listeners
             ['filterGeneral', 'filterStatus', 'filterUser', 'filterDateFrom', 'filterDateTo'].forEach(id => {
                 document.getElementById(id).addEventListener('input', () => this.renderTable());
             });
 
-            // Set today's date in entry form
             document.getElementById('entryDate').value = new Date().toLocaleDateString('en-GB');
+            
+            // Set Chart.js defaults for better UI
+            Chart.defaults.font.family = "'Almarai', sans-serif";
+            Chart.defaults.color = '#636e72';
         },
 
         bindLogin() {
             document.getElementById('loginForm').addEventListener('submit', (e) => {
                 e.preventDefault();
-                const u = document.getElementById('loginUser').value.trim();
+                const u = document.getElementById('loginUser').value.trim().toLowerCase();
                 const p = document.getElementById('loginPass').value;
-                if(p === "2026") { // Auth Logic requested
+                
+                const userData = USERS_DB[u];
+                
+                if(userData && userData.pass === p) {
                     this.currentUser = u;
+                    this.currentUserRole = userData.role;
+                    this.currentUserName = userData.name;
+                    
                     document.getElementById('authScreen').style.display = 'none';
                     document.getElementById('appContainer').style.display = 'block';
-                    document.getElementById('entryUser').value = u;
-                    document.getElementById('currentUserDisplay').innerText = `مرحباً، ${u}`;
+                    
+                    document.getElementById('entryUser').value = this.currentUserName;
+                    document.getElementById('currentUserDisplay').innerText = `مرحباً، ${this.currentUserName}`;
+                    
+                    const badge = document.getElementById('userRoleBadge');
+                    badge.innerText = this.currentUserRole;
+                    badge.className = `role-badge ${this.currentUserRole === 'Admin' ? 'role-admin' : 'role-user'}`;
+
+                    this.applyPermissions();
                     this.startListener();
-                    this.notify(`تم تسجيل الدخول بنجاح يا ${u}`, 'success');
+                    this.notify(`تم تسجيل الدخول بنجاح كـ ${this.currentUserRole}`, 'success');
                 } else {
-                    this.notify('كلمة المرور خاطئة', 'error');
+                    this.notify('اسم المستخدم أو كلمة المرور غير صحيحة', 'error');
                 }
             });
         },
 
         logout() {
             this.currentUser = null;
+            this.currentUserRole = null;
             document.getElementById('appContainer').style.display = 'none';
             document.getElementById('authScreen').style.display = 'flex';
             document.getElementById('loginPass').value = '';
+        },
+
+        applyPermissions() {
+            // إخفاء/إظهار العناصر الخاصة بالأدمن فقط
+            const adminElements = document.querySelectorAll('.admin-only');
+            adminElements.forEach(el => {
+                if(this.currentUserRole === 'Admin') {
+                    // Restore original display style dynamically
+                    el.style.display = el.tagName === 'TH' || el.tagName === 'TD' ? 'table-cell' : (el.tagName === 'LI' ? 'block' : 'block');
+                } else {
+                    el.style.display = 'none';
+                }
+            });
+
+            // For Export button - visible to all but only exports filtered if not admin
+            if(this.currentUserRole !== 'Admin' && document.getElementById('bulkActionsPanel')) {
+                document.getElementById('bulkActionsPanel').style.setProperty('display', 'none', 'important');
+            }
         },
 
         showTab(id) {
@@ -502,16 +636,35 @@
             if(id === 'tab-dashboard') this.renderDashboard();
             if(id === 'tab-kanban') this.renderKanban();
             if(id === 'tab-reports') this.renderTable();
+            if(id === 'tab-logs') this.renderLogs();
         },
 
         notify(msg, type = 'info') {
             const colors = { success: "#28a745", error: "#dc3545", info: "#17a2b8", warning: "#ffc107" };
             Toastify({
-                text: msg,
-                duration: 3000,
-                gravity: "bottom", position: "right",
-                style: { background: colors[type], borderRadius: "8px", fontFamily: "Almarai" }
+                text: msg, duration: 3000, gravity: "bottom", position: "right",
+                style: { background: colors[type], borderRadius: "10px", fontFamily: "Almarai", fontWeight: "bold" }
             }).showToast();
+        },
+
+        // 3. نظام تتبع التعديلات (Audit Log)
+        logAction(actionType, orderId, details) {
+            const actionNames = {
+                'create': 'إضافة طلب',
+                'update': 'تعديل طلب',
+                'delete': 'حذف طلب',
+                'status': 'تغيير حالة'
+            };
+            
+            const logEntry = {
+                timestamp: Date.now(),
+                date: new Date().toLocaleString('en-GB'),
+                user: this.currentUserName,
+                action: actionNames[actionType] || actionType,
+                orderId: orderId,
+                details: details
+            };
+            push(logsRef, logEntry);
         },
 
         startListener() {
@@ -520,6 +673,14 @@
                 this.updateUI();
                 this.extractMetadata();
             });
+
+            if(this.currentUserRole === 'Admin') {
+                onValue(logsRef, (snapshot) => {
+                    this.logsData = snapshot.val() || {};
+                    const activeTab = document.querySelector('.tab-content[style*="block"]');
+                    if(activeTab && activeTab.id === 'tab-logs') this.renderLogs();
+                });
+            }
         },
 
         extractMetadata() {
@@ -530,19 +691,15 @@
                 if(o.model) models.add(o.model);
             });
             
-            // Populate Dropdowns
             const userHtml = '<option value="">الكل</option>' + Array.from(users).map(u => `<option value="${u}">${u}</option>`).join('');
             document.getElementById('filterUser').innerHTML = userHtml;
             document.getElementById('bulkAssignUser').innerHTML = '<option value="">اختر مستخدم للترحيل...</option>' + Array.from(users).map(u => `<option value="${u}">${u}</option>`).join('');
-            
             document.getElementById('modelList').innerHTML = Array.from(models).map(m => `<option value="${m}">`).join('');
         },
 
         updateUI() {
-            // Update Active Tab efficiently
             const activeTab = document.querySelector('.tab-content[style*="block"]');
-            if(!activeTab) { this.renderDashboard(); return; } // Default
-            
+            if(!activeTab) { this.renderDashboard(); return; }
             if(activeTab.id === 'tab-dashboard') this.renderDashboard();
             if(activeTab.id === 'tab-kanban') this.renderKanban();
             if(activeTab.id === 'tab-reports') this.renderTable();
@@ -553,7 +710,7 @@
             const payload = {
                 date: document.getElementById('entryDate').value,
                 timestamp: Date.now(),
-                entryUser: this.currentUser,
+                entryUser: this.currentUserName,
                 custName: document.getElementById('custName').value,
                 custAddr: document.getElementById('custAddr').value,
                 custMob: "0" + document.getElementById('custMob').value,
@@ -568,14 +725,10 @@
                 status: 'new'
             };
             try {
-                await push(ordersRef, payload);
+                const newRef = await push(ordersRef, payload);
+                this.logAction('create', newRef.key, `إنشاء طلب للزبون: ${payload.custName}`);
                 this.notify("تم حفظ الطلبية بنجاح", "success");
                 
-                // Sound effect (optional subtle pop)
-                const audio = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU'); // dummy base64 for safe execution, replace with real beep if needed or remove.
-                audio.play().catch(e=>console.log("Audio play blocked by browser"));
-                
-                // Reset specific fields, keep date/user
                 ['custName', 'custAddr', 'custMob', 'model', 'size', 'weight', 'height', 'price', 'tags'].forEach(id => document.getElementById(id).value = '');
                 document.getElementById('custName').focus();
             } catch (err) {
@@ -583,81 +736,105 @@
             }
         },
 
-        // --- DASHBOARD ---
+        // --- DASHBOARD (Power BI Style) ---
         renderDashboard() {
             const orders = Object.values(this.data);
             const total = orders.length;
-            const newOrders = orders.filter(o => o.status === 'new').length;
-            const processOrders = orders.filter(o => o.status === 'process').length;
-            const doneOrders = orders.filter(o => o.status === 'done').length;
-const rev = orders.reduce((acc, curr) => acc + (parseFloat(curr.price) || 0), 0);            
-            document.getElementById('kpi-total').innerText = total;
-            document.getElementById('kpi-new').innerText = newOrders;
-            document.getElementById('kpi-revenue').innerHTML = `${rev.toLocaleString()} <small class="fs-6">JOD</small>`;
-            document.getElementById('kpi-avg').innerHTML = total ? `${(rev/total).toFixed(1)} <small class="fs-6">JOD</small>` : '0';
+            
+            const counts = { new: 0, process: 0, done: 0, delivered: 0 };
+            const revByModel = {};
+            const revByDate = {};
+            const ordersByUser = {};
+            const priorityCounts = { high: 0, med: 0, low: 0 };
+            let totalRev = 0;
 
-            this.buildCharts(orders, newOrders, processOrders, doneOrders);
+            orders.forEach(o => {
+                counts[o.status] = (counts[o.status] || 0) + 1;
+                totalRev += (o.price || 0);
+                revByModel[o.model] = (revByModel[o.model] || 0) + o.price;
+                ordersByUser[o.entryUser] = (ordersByUser[o.entryUser] || 0) + 1;
+                priorityCounts[o.priority || 'med']++;
+            });
+            
+            const compPercent = total > 0 ? Math.round((counts.delivered / total) * 100) : 0;
+
+            document.getElementById('kpi-total').innerText = total;
+            document.getElementById('kpi-new').innerText = counts.new;
+            document.getElementById('kpi-delivered').innerText = counts.delivered;
+            document.getElementById('kpi-completion').innerText = `${compPercent}%`;
+            document.getElementById('kpi-revenue').innerHTML = `${totalRev.toLocaleString()} <small class="fs-6">JOD</small>`;
+
+            this.buildCharts(counts, revByModel, ordersByUser, priorityCounts);
         },
 
-        buildCharts(orders, n, p, d) {
-            // Status Chart
+        buildCharts(counts, revByModel, ordersByUser, priorityCounts) {
+            // 1. Status Chart
             if(this.charts.status) this.charts.status.destroy();
             this.charts.status = new Chart(document.getElementById('statusChart'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['جديدة', 'تحضير', 'جاهزة'],
-                    datasets: [{ data: [n, p, d], backgroundColor: ['#ffc107', '#17a2b8', '#28a745'], borderWidth: 0 }]
+                    labels: ['جديدة', 'تحضير', 'جاهزة', 'مسلمة'],
+                    datasets: [{ data: [counts.new, counts.process, counts.done, counts.delivered], backgroundColor: ['#ffc107', '#17a2b8', '#28a745', '#273c75'], borderWidth: 2, hoverOffset: 10 }]
                 },
-                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, cutout: '70%' }
             });
 
-            // Model Chart (Top 5)
-            const models = {};
-orders.forEach(o => { 
-    models[o.model] = (models[o.model] || 0) + (parseFloat(o.price) || 0); 
-});
-            const sortedModels = Object.entries(models).sort((a,b)=>b[1]-a[1]).slice(0,5);
-            
+            // 2. Funnel Chart (Bar chart simulation)
+            if(this.charts.funnel) this.charts.funnel.destroy();
+            this.charts.funnel = new Chart(document.getElementById('funnelChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['إدخال (جديد)', 'تجهيز', 'مكتمل', 'تسليم نهائي'],
+                    datasets: [{ label: 'العدد', data: [counts.new + counts.process + counts.done + counts.delivered, counts.process + counts.done + counts.delivered, counts.done + counts.delivered, counts.delivered], backgroundColor: 'rgba(9, 153, 153, 0.7)', borderRadius: 4 }]
+                },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
+            });
+
+            // 3. User Orders Chart
+            const uLabels = Object.keys(ordersByUser);
+            const uData = Object.values(ordersByUser);
+            if(this.charts.user) this.charts.user.destroy();
+            this.charts.user = new Chart(document.getElementById('userChart'), {
+                type: 'polarArea',
+                data: { labels: uLabels, datasets: [{ data: uData, backgroundColor: ['rgba(255, 99, 132, 0.6)','rgba(54, 162, 235, 0.6)','rgba(255, 206, 86, 0.6)','rgba(75, 192, 192, 0.6)'] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+            });
+
+            // 4. Model Revenue (Top 7)
+            const sortedModels = Object.entries(revByModel).sort((a,b)=>b[1]-a[1]).slice(0,7);
             if(this.charts.model) this.charts.model.destroy();
             this.charts.model = new Chart(document.getElementById('modelChart'), {
                 type: 'bar',
                 data: {
                     labels: sortedModels.map(x=>x[0]),
-                    datasets: [{ label: 'الإيرادات (JOD)', data: sortedModels.map(x=>x[1]), backgroundColor: '#099999', borderRadius: 6 }]
+                    datasets: [{ label: 'الإيرادات (JOD)', data: sortedModels.map(x=>x[1]), backgroundColor: '#099999', borderRadius: 8 }]
                 },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
 
-            // Timeline Chart (Simple group by date)
-            const dates = {};
-            orders.forEach(o => { dates[o.date] = (dates[o.date] || 0) + 1; });
-            const sortedDates = Object.keys(dates).sort((a,b) => {
-                const [d1,m1,y1] = a.split('/'); const [d2,m2,y2] = b.split('/');
-                return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
-            }).slice(-14); // Last 14 days
-
-            if(this.charts.timeline) this.charts.timeline.destroy();
-            this.charts.timeline = new Chart(document.getElementById('timelineChart'), {
-                type: 'line',
+            // 5. Priority Chart
+            if(this.charts.priority) this.charts.priority.destroy();
+            this.charts.priority = new Chart(document.getElementById('priorityChart'), {
+                type: 'pie',
                 data: {
-                    labels: sortedDates,
-                    datasets: [{ label: 'عدد الطلبات', data: sortedDates.map(d=>dates[d]), borderColor: '#1171ef', backgroundColor: 'rgba(17, 113, 239, 0.1)', fill: true, tension: 0.4 }]
+                    labels: ['عالية', 'متوسطة', 'عادية'],
+                    datasets: [{ data: [priorityCounts.high, priorityCounts.med, priorityCounts.low], backgroundColor: ['#d63031', '#feca57', '#1dd1a1'], borderWidth: 0 }]
                 },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: {stepSize:1} } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
             });
         },
 
         // --- KANBAN ---
         renderKanban() {
             const query = (document.getElementById('kanbanSearch').value || '').toLowerCase();
-            const cols = { new: [], process: [], done: [] };
+            const cols = { new: [], process: [], done: [], delivered: [] }; // Added delivered
             
             Object.entries(this.data).forEach(([id, o]) => {
                 if(query && !JSON.stringify(o).toLowerCase().includes(query)) return;
                 if(cols[o.status]) cols[o.status].push({id, ...o});
             });
 
-            ['new', 'process', 'done'].forEach(status => {
+            ['new', 'process', 'done', 'delivered'].forEach(status => {
                 const container = document.getElementById(`kb-${status}`);
                 document.getElementById(`kb-count-${status}`).innerText = cols[status].length;
                 container.innerHTML = cols[status].map(o => this.getKanbanCard(o)).join('');
@@ -667,20 +844,21 @@ orders.forEach(o => {
         },
 
         getKanbanCard(o) {
-            const badges = { high: 'bg-danger', med: 'bg-warning', low: 'bg-success' };
-            const pBadge = `<span class="badge ${badges[o.priority || 'med']} position-absolute top-0 start-0 m-2" style="font-size:0.6rem">P</span>`;
+            const badges = { high: 'badge-priority-high', med: 'badge-priority-med', low: 'badge-priority-low' };
+            const pBadge = `<span class="badge ${badges[o.priority || 'med']} position-absolute top-0 start-0 m-2" style="font-size:0.6rem; z-index:2;"><i class="fas fa-flag"></i></span>`;
             
             return `
-            <div class="card order-card ${o.status}-border" data-id="${o.id}">
+            <div class="order-card ${o.status}-border" data-id="${o.id}">
                 ${pBadge}
                 <div class="d-flex justify-content-between align-items-start mb-2">
-                    <strong class="text-dark fs-6">${o.custName}</strong>
-                    <span class="fw-bold text-success small">${Number(o.price).toLocaleString()} J</span>
+                    <strong class="text-dark fs-6 text-truncate pe-3" style="max-width: 70%;" title="${o.custName}">${o.custName}</strong>
+                    <span class="fw-bold text-success small bg-success bg-opacity-10 px-2 py-1 rounded">${o.price} JOD</span>
                 </div>
-                <div class="text-muted small mb-2"><i class="fas fa-tshirt me-1"></i> ${o.model} | مقاس: ${o.size}</div>
-                <div class="d-flex justify-content-between align-items-center mt-2">
-                    <span class="badge bg-light text-dark border"><i class="fas fa-user-circle"></i> ${o.entryUser}</span>
-                    <span class="text-muted" style="font-size: 0.75rem">${o.date}</span>
+                <div class="text-muted small mb-3"><i class="fas fa-tshirt me-1 text-primary"></i> ${o.model} <span class="mx-1">|</span> <i class="fas fa-ruler me-1"></i> ${o.size}</div>
+                ${o.tags ? `<div class="mb-2"><span class="badge bg-light text-secondary border border-secondary border-opacity-25" style="font-size:0.65rem">${o.tags}</span></div>` : ''}
+                <div class="d-flex justify-content-between align-items-center mt-auto border-top pt-2">
+                    <span class="text-muted fw-bold" style="font-size: 0.7rem"><i class="fas fa-user-circle"></i> ${o.entryUser}</span>
+                    <span class="text-muted" style="font-size: 0.7rem"><i class="far fa-clock"></i> ${o.date.substring(0,5)}</span>
                 </div>
             </div>`;
         },
@@ -688,13 +866,17 @@ orders.forEach(o => {
         filterKanban() { this.renderKanban(); },
 
         initSortable() {
-            ['new', 'process', 'done'].forEach(status => {
+            // Only allow dragging if Admin
+            const isDraggable = this.currentUserRole === 'Admin';
+            
+            ['new', 'process', 'done', 'delivered'].forEach(status => {
                 const el = document.getElementById(`kb-${status}`);
-                if(el._sortable) el._sortable.destroy(); // Prevent duplicate binding
+                if(el._sortable) el._sortable.destroy(); 
                 el._sortable = Sortable.create(el, {
                     group: 'kanban',
-                    animation: 150,
+                    animation: 250,
                     ghostClass: 'card-ghost',
+                    disabled: !isDraggable, // Disable for normal users
                     onEnd: (evt) => {
                         const itemEl = evt.item;
                         const id = itemEl.getAttribute('data-id');
@@ -704,7 +886,9 @@ orders.forEach(o => {
                         if(newStatus !== oldStatus) {
                             update(ref(db, `orders/${id}`), { status: newStatus })
                             .then(() => {
-                                this.notify(`تم تغيير حالة الطلب إلى ${newStatus === 'done' ? 'جاهز' : (newStatus==='process'?'تحضير':'جديد')}`, 'success');
+                                const statusNames = {new:'جديد', process:'تحضير', done:'جاهز', delivered:'مُسلّم'};
+                                this.logAction('status', id, `تغيير عبر السحب من (${statusNames[oldStatus]}) إلى (${statusNames[newStatus]})`);
+                                this.notify(`تم تحديث حالة الطلب إلى: ${statusNames[newStatus]}`, 'success');
                             });
                         }
                     }
@@ -740,32 +924,36 @@ orders.forEach(o => {
             const tbody = document.getElementById('tableBody');
             
             const sBadges = {
-                new: '<span class="badge bg-warning text-dark">جديدة</span>',
-                process: '<span class="badge bg-info text-white">تحضير</span>',
-                done: '<span class="badge bg-success">جاهزة</span>'
+                new: '<span class="badge bg-warning text-dark px-2 py-1"><i class="fas fa-star me-1"></i> جديدة</span>',
+                process: '<span class="badge bg-info text-white px-2 py-1"><i class="fas fa-cog fa-spin me-1"></i> تحضير</span>',
+                done: '<span class="badge bg-success px-2 py-1"><i class="fas fa-box me-1"></i> جاهزة</span>',
+                delivered: '<span class="badge text-white px-2 py-1" style="background: var(--status-delivered)"><i class="fas fa-check-double me-1"></i> مُسلّم</span>'
             };
+
+            const isAdmin = this.currentUserRole === 'Admin';
 
             tbody.innerHTML = filtered.map(([id, o]) => `
                 <tr>
-                    <td><input type="checkbox" class="form-check-input row-checkbox" value="${id}" onchange="app.updateSelection()" ${this.selectedIds.has(id)?'checked':''}></td>
-                    <td class="text-muted small">...${id.slice(-5)}</td>
-                    <td class="fw-bold">${o.custName}</td>
-                    <td><a href="tel:${o.custMob}" class="text-decoration-none">${o.custMob}</a></td>
-                    <td>${o.model} <span class="text-muted small">(${o.size})</span></td>
-                    <td class="text-success fw-bold">${Number(o.price).toLocaleString()} JOD</td>
+                    ${isAdmin ? `<td><input type="checkbox" class="form-check-input border-secondary row-checkbox" value="${id}" onchange="app.updateSelection()" ${this.selectedIds.has(id)?'checked':''}></td>` : '<td class="admin-only"></td>'}
+                    <td class="text-muted small fw-bold" title="${id}">...${id.slice(-6)}</td>
+                    <td class="fw-bold text-primary">${o.custName}</td>
+                    <td><a href="tel:${o.custMob}" class="text-decoration-none text-dark fw-bold"><i class="fas fa-phone-alt small text-muted me-1"></i>${o.custMob}</a></td>
+                    <td>${o.model} <span class="badge bg-light text-dark border ms-1">${o.size}</span></td>
+                    <td class="text-success fw-bold">${o.price} JOD</td>
                     <td>${sBadges[o.status]}</td>
-                    <td><i class="fas fa-user-circle text-muted"></i> ${o.entryUser}</td>
-                    <td class="small">${o.date}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="app.editOrder('${id}')" title="تعديل"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="app.deleteOrder('${id}')" title="حذف"><i class="fas fa-trash"></i></button>
-                    </td>
+                    <td class="small fw-bold"><i class="fas fa-user-circle text-muted"></i> ${o.entryUser}</td>
+                    <td class="small text-muted">${o.date}</td>
+                    ${isAdmin ? `
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-light text-danger shadow-sm border border-danger border-opacity-25" onclick="app.deleteOrder('${id}')" title="حذف"><i class="fas fa-trash"></i></button>
+                    </td>` : '<td class="admin-only"></td>'}
                 </tr>
             `).join('');
 
-            // Restore general checkbox logic
-            document.getElementById('selectAll').checked = (filtered.length > 0 && this.selectedIds.size === filtered.length);
-            this.updateBulkPanel();
+            if(isAdmin) {
+                document.getElementById('selectAll').checked = (filtered.length > 0 && this.selectedIds.size === filtered.length);
+                this.updateBulkPanel();
+            }
         },
 
         resetFilters() {
@@ -777,11 +965,8 @@ orders.forEach(o => {
             const isChecked = document.getElementById('selectAll').checked;
             const filtered = this.getFilteredData();
             
-            if(isChecked) {
-                filtered.forEach(([id]) => this.selectedIds.add(id));
-            } else {
-                filtered.forEach(([id]) => this.selectedIds.delete(id));
-            }
+            if(isChecked) { filtered.forEach(([id]) => this.selectedIds.add(id)); } 
+            else { filtered.forEach(([id]) => this.selectedIds.delete(id)); }
             
             document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = isChecked);
             this.updateSelection();
@@ -796,21 +981,19 @@ orders.forEach(o => {
         },
 
         updateBulkPanel() {
+            if(this.currentUserRole !== 'Admin') return;
             const panel = document.getElementById('bulkActionsPanel');
-            const countEl = document.getElementById('selectedCount');
-            countEl.innerText = this.selectedIds.size;
-            
-            if(this.selectedIds.size > 0) {
-                panel.style.setProperty('display', 'flex', 'important');
-            } else {
-                panel.style.setProperty('display', 'none', 'important');
-            }
+            document.getElementById('selectedCount').innerText = this.selectedIds.size;
+            panel.style.setProperty('display', this.selectedIds.size > 0 ? 'block' : 'none', 'important');
         },
 
         async bulkDelete() {
-            if(!confirm(`هل أنت متأكد من حذف ${this.selectedIds.size} طلب/طلبات؟`)) return;
+            if(!confirm(`هل أنت متأكد من حذف ${this.selectedIds.size} طلب/طلبات بشكل نهائي؟`)) return;
             const updates = {};
-            this.selectedIds.forEach(id => updates[`orders/${id}`] = null);
+            this.selectedIds.forEach(id => {
+                updates[`orders/${id}`] = null;
+                this.logAction('delete', id, 'حذف جماعي');
+            });
             await update(ref(db), updates);
             this.notify(`تم حذف ${this.selectedIds.size} طلب بنجاح`, "success");
             this.clearSelection();
@@ -818,9 +1001,13 @@ orders.forEach(o => {
 
         async bulkStatus(newStatus) {
             const updates = {};
-            this.selectedIds.forEach(id => updates[`orders/${id}/status`] = newStatus);
+            const statusNames = {new:'جديدة', process:'تحضير', done:'جاهزة', delivered:'تم التسليم'};
+            this.selectedIds.forEach(id => {
+                updates[`orders/${id}/status`] = newStatus;
+                this.logAction('status', id, `تعديل جماعي إلى: ${statusNames[newStatus]}`);
+            });
             await update(ref(db), updates);
-            this.notify(`تم تغيير حالة ${this.selectedIds.size} طلب`, "success");
+            this.notify(`تم تغيير حالة ${this.selectedIds.size} طلب إلى ${statusNames[newStatus]}`, "success");
             this.clearSelection();
         },
 
@@ -830,7 +1017,10 @@ orders.forEach(o => {
             if(!confirm(`هل تريد ترحيل ${this.selectedIds.size} طلب إلى ${targetUser}؟`)) return;
             
             const updates = {};
-            this.selectedIds.forEach(id => updates[`orders/${id}/entryUser`] = targetUser);
+            this.selectedIds.forEach(id => {
+                updates[`orders/${id}/entryUser`] = targetUser;
+                this.logAction('update', id, `ترحيل ملكية الطلب إلى المستخدم: ${targetUser}`);
+            });
             await update(ref(db), updates);
             this.notify(`تم ترحيل الطلبات إلى ${targetUser} بنجاح`, "success");
             this.clearSelection();
@@ -839,29 +1029,31 @@ orders.forEach(o => {
 
         clearSelection() {
             this.selectedIds.clear();
-            document.getElementById('selectAll').checked = false;
+            if(document.getElementById('selectAll')) document.getElementById('selectAll').checked = false;
             this.updateSelection();
         },
 
         deleteOrder(id) {
             if(confirm("هل أنت متأكد من حذف هذا الطلب نهائياً؟")) {
-                remove(ref(db, `orders/${id}`)).then(() => this.notify("تم الحذف بنجاح", "success"));
+                remove(ref(db, `orders/${id}`)).then(() => {
+                    this.logAction('delete', id, 'حذف فردي للطلب');
+                    this.notify("تم الحذف بنجاح", "success");
+                });
             }
         },
 
         exportExcel() {
             let dataToExport = [];
-            if(this.selectedIds.size > 0) {
-                // Export selected
+            // Admin can export selected. User exports filtered view.
+            if(this.selectedIds.size > 0 && this.currentUserRole === 'Admin') {
                 this.selectedIds.forEach(id => { if(this.data[id]) dataToExport.push(this.data[id]); });
             } else {
-                // Export filtered view
                 dataToExport = this.getFilteredData().map(arr => arr[1]);
             }
 
             if(dataToExport.length === 0) { this.notify("لا يوجد بيانات لتصديرها", "warning"); return; }
 
-            const statusMap = { new: 'جديدة', process: 'قيد التحضير', done: 'جاهزة' };
+            const statusMap = { new: 'جديدة', process: 'قيد التحضير', done: 'جاهزة', delivered: 'تم التسليم' };
             const priorityMap = { high: 'عالية', med: 'متوسطة', low: 'عادية' };
 
             const formattedData = dataToExport.map(o => ({
@@ -882,8 +1074,6 @@ orders.forEach(o => {
             }));
 
             const worksheet = XLSX.utils.json_to_sheet(formattedData);
-            
-            // RTL support for SheetJS
             if(!worksheet['!views']) worksheet['!views'] = [];
             worksheet['!views'].push({ rightToLeft: true });
 
@@ -892,13 +1082,45 @@ orders.forEach(o => {
             
             XLSX.writeFile(workbook, `DARZA_Orders_${new Date().toISOString().split('T')[0]}.xlsx`);
             this.notify("تم بدء تحميل ملف Excel", "success");
-            this.clearSelection(); // Optional
+            if(this.currentUserRole === 'Admin') this.clearSelection();
+        },
+
+        // --- AUDIT LOGS UI ---
+        renderLogs() {
+            if(this.currentUserRole !== 'Admin') return;
+            
+            const logsArray = Object.entries(this.logsData)
+                                .map(([id, l]) => ({id, ...l}))
+                                .sort((a,b) => b.timestamp - a.timestamp); // الأحدث أولاً
+            
+            const tbody = document.getElementById('logsTableBody');
+            
+            const actionColors = {
+                'إضافة طلب': 'text-success',
+                'تعديل طلب': 'text-primary',
+                'حذف طلب': 'text-danger',
+                'تغيير حالة': 'text-warning'
+            };
+
+            tbody.innerHTML = logsArray.map(l => {
+                const dateObj = new Date(l.timestamp);
+                const timeStr = dateObj.toLocaleTimeString('en-GB');
+                const dateStr = dateObj.toLocaleDateString('en-GB');
+                
+                return `
+                <tr>
+                    <td class="small fw-bold"><i class="far fa-clock text-muted me-1"></i> ${timeStr} <br><span class="text-muted">${dateStr}</span></td>
+                    <td class="fw-bold"><i class="fas fa-user-shield text-info me-1"></i> ${l.user}</td>
+                    <td class="fw-bold ${actionColors[l.action] || 'text-dark'}">${l.action}</td>
+                    <td class="small text-muted font-monospace">${l.orderId || 'N/A'}</td>
+                    <td class="small">${l.details || '-'}</td>
+                </tr>
+                `;
+            }).join('');
         }
     };
 
-    // Initialize App
     document.addEventListener("DOMContentLoaded", () => app.init());
-
 </script>
 </body>
 </html>
