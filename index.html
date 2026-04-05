@@ -613,7 +613,9 @@ const rev = orders.reduce((acc, curr) => acc + (parseFloat(curr.price) || 0), 0)
 
             // Model Chart (Top 5)
             const models = {};
-            orders.forEach(o => { models[o.model] = (models[o.model] || 0) + o.price; });
+orders.forEach(o => { 
+    models[o.model] = (models[o.model] || 0) + (parseFloat(o.price) || 0); 
+});
             const sortedModels = Object.entries(models).sort((a,b)=>b[1]-a[1]).slice(0,5);
             
             if(this.charts.model) this.charts.model.destroy();
@@ -673,7 +675,7 @@ const rev = orders.reduce((acc, curr) => acc + (parseFloat(curr.price) || 0), 0)
                 ${pBadge}
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <strong class="text-dark fs-6">${o.custName}</strong>
-                    <span class="fw-bold text-success small">${o.price} J</span>
+                    <span class="fw-bold text-success small">${Number(o.price).toLocaleString()} J</span>
                 </div>
                 <div class="text-muted small mb-2"><i class="fas fa-tshirt me-1"></i> ${o.model} | مقاس: ${o.size}</div>
                 <div class="d-flex justify-content-between align-items-center mt-2">
@@ -750,7 +752,7 @@ const rev = orders.reduce((acc, curr) => acc + (parseFloat(curr.price) || 0), 0)
                     <td class="fw-bold">${o.custName}</td>
                     <td><a href="tel:${o.custMob}" class="text-decoration-none">${o.custMob}</a></td>
                     <td>${o.model} <span class="text-muted small">(${o.size})</span></td>
-                    <td class="text-success fw-bold">${o.price} JOD</td>
+                    <td class="text-success fw-bold">${Number(o.price).toLocaleString()} JOD</td>
                     <td>${sBadges[o.status]}</td>
                     <td><i class="fas fa-user-circle text-muted"></i> ${o.entryUser}</td>
                     <td class="small">${o.date}</td>
