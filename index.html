@@ -748,13 +748,13 @@
             const priorityCounts = { high: 0, med: 0, low: 0 };
             let totalRev = 0;
 
-            orders.forEach(o => {
-                counts[o.status] = (counts[o.status] || 0) + 1;
-                totalRev += (o.price || 0);
-                revByModel[o.model] = (revByModel[o.model] || 0) + o.price;
-                ordersByUser[o.entryUser] = (ordersByUser[o.entryUser] || 0) + 1;
-                priorityCounts[o.priority || 'med']++;
-            });
+         orders.forEach(o => {
+                counts[o.status] = (counts[o.status] || 0) + 1;
+                totalRev += parseFloat(o.price || 0);
+                revByModel[o.model] = (revByModel[o.model] || 0) + parseFloat(o.price || 0);
+                ordersByUser[o.entryUser] = (ordersByUser[o.entryUser] || 0) + 1;
+                priorityCounts[o.priority || 'med']++;
+            });
             
             const compPercent = total > 0 ? Math.round((counts.delivered / total) * 100) : 0;
 
