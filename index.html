@@ -868,6 +868,7 @@
                             this.currentUserName = userData.name;
                             document.getElementById('authScreen').style.display = 'none';
                             document.getElementById('appContainer').style.display = 'block';
+		this.showTab('tab-dashboard');
                             document.getElementById('entryUser').value = this.currentUserName;
                             document.getElementById('currentUserDisplay').innerText = `مرحباً، ${this.currentUserName}`;
                             const badge = document.getElementById('userRoleBadge');
