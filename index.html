@@ -28,6 +28,15 @@
                 --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.08);
                 --border-radius: 16px;
                 --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+--status-postponed: #fd7e14;
+--status-canceled: #dc3545;
+--status-stored: #6c757d;
+
+/* وضيف هدول الكلاسات تحت كلاسات الـ borders القديمة (مثل .delivered-border) */
+.postponed-border { border-right-color: var(--status-postponed); }
+.canceled-border { border-right-color: var(--status-canceled); }
+.stored-border { border-right-color: var(--status-stored); }
+
             }
 
             body {
@@ -588,31 +597,129 @@
                     </div>
                 </div>
 
-                <div id="tab-kanban" class="tab-content" style="display:none;">
-                    <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded-4 shadow-sm">
-                        <h4 class="fw-bold m-0"><i class="fas fa-columns text-primary me-2"></i> إدارة سير العمل (اضغط على أي طلب للتفاصيل)</h4>
-                        <div class="input-group" style="width: 350px;"><span class="input-group-text bg-light border-0"><i class="fas fa-search"></i></span><input type="text" id="kanbanSearch" class="form-control bg-light border-0" placeholder="بحث سريع..." onkeyup="app.filterKanban()"></div>
-                    </div>
-                    <div class="kanban-board">
-                        <div class="kanban-column shadow-sm">
-                            <div class="kanban-column-header" style="color: var(--status-new)"><span><i class="fas fa-star me-2"></i> 1. طلبات جديدة</span><span class="badge bg-warning text-dark rounded-pill fs-6" id="kb-count-new">0</span></div>
-                            <div class="kanban-items" id="kb-new" data-status="new"></div>
-                        </div>
-                        <div class="kanban-column shadow-sm">
-                            <div class="kanban-column-header" style="color: var(--status-process)"><span><i class="fas fa-cog fa-spin me-2"></i> 2. قيد التحضير</span><span class="badge bg-info text-white rounded-pill fs-6" id="kb-count-process">0</span></div>
-                            <div class="kanban-items" id="kb-process" data-status="process"></div>
-                        </div>
-                        <div class="kanban-column shadow-sm">
-                            <div class="kanban-column-header" style="color: var(--status-done)"><span><i class="fas fa-box me-2"></i> 3. جاهزة للتسليم</span><span class="badge bg-success text-white rounded-pill fs-6" id="kb-count-done">0</span></div>
-                            <div class="kanban-items" id="kb-done" data-status="done"></div>
-                        </div>
-                        <div class="kanban-column shadow-sm">
-                            <div class="kanban-column-header" style="color: var(--status-delivered)"><span><i class="fas fa-check-double me-2"></i> 4. تم التسليم</span><span class="badge text-white rounded-pill fs-6" style="background: var(--status-delivered)" id="kb-count-delivered">0</span></div>
-                            <div class="kanban-items" id="kb-delivered" data-status="delivered"></div>
-                        </div>
-                    </div>
-                </div>
+<div id="tab-kanban" class="tab-content" style="display:none;">
+    <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded-4 shadow-sm">
+        <h4 class="fw-bold m-0"><i class="fas fa-list-ul text-primary me-2"></i> بورد الطلبات (القوائم الموسعة)</h4>
+        <div class="input-group" style="width: 350px;">
+            <span class="input-group-text bg-light border-0"><i class="fas fa-search"></i></span>
+            <input type="text" id="kanbanSearch" class="form-control bg-light border-0" placeholder="بحث سريع..." onkeyup="app.filterKanban()">
+        </div>
+    </div>
 
+    <div id="kbBulkActionsPanel" class="card p-3 mb-3 shadow-sm border-0" style="display: none; background-color: rgba(9, 153, 153, 0.05); border-right: 4px solid var(--primary) !important;">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <span class="fw-bold text-primary"><i class="fas fa-check-square me-2"></i> تم تحديد <span id="kbSelectedCount">0</span> طلب من البورد</span>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-info text-white px-3" onclick="app.kbBulkPrint()">
+                    <i class="fas fa-print me-1"></i> طباعة المحدد
+                </button>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-exchange-alt me-1"></i> تغيير حالة المحدد
+                    </button>
+                    <ul class="dropdown-menu shadow">
+                        <li><a class="dropdown-item" href="#" onclick="app.kbBulkStatus('new')">جديدة</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="app.kbBulkStatus('process')">قيد التحضير</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="app.kbBulkStatus('done')">جاهزة للتسليم</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="app.kbBulkStatus('delivered')">تم التسليم</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="app.kbBulkStatus('postponed')">مؤجل</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="app.kbBulkStatus('canceled')">ملغي</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="app.kbBulkStatus('stored')">مخزن</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion" id="kanbanAccordion">
+        <div class="accordion-item mb-3 border-0 shadow-sm rounded-4 overflow-hidden">
+            <h2 class="accordion-header">
+                <button class="accordion-button fw-bold fs-5" type="button" data-bs-toggle="collapse" data-bs-target="#colNew">
+                    <i class="fas fa-star text-warning me-2"></i> 1. طلبات جديدة
+                    <span class="ms-auto me-2 badge bg-warning text-dark rounded-pill" id="kb-count-new">0</span>
+                    <span class="badge bg-light text-dark border me-3" id="kb-total-new">0 JOD</span>
+                </button>
+            </h2>
+            <div id="colNew" class="accordion-collapse collapse show" data-bs-parent="#kanbanAccordion">
+                <div class="accordion-body bg-light"><div class="d-flex flex-wrap gap-3" id="kb-new" data-status="new"></div></div>
+            </div>
+        </div>
+        <div class="accordion-item mb-3 border-0 shadow-sm rounded-4 overflow-hidden">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold fs-5" type="button" data-bs-toggle="collapse" data-bs-target="#colProc">
+                    <i class="fas fa-cog text-info me-2"></i> 2. قيد التحضير
+                    <span class="ms-auto me-2 badge bg-info text-white rounded-pill" id="kb-count-process">0</span>
+                    <span class="badge bg-light text-dark border me-3" id="kb-total-process">0 JOD</span>
+                </button>
+            </h2>
+            <div id="colProc" class="accordion-collapse collapse" data-bs-parent="#kanbanAccordion">
+                <div class="accordion-body bg-light"><div class="d-flex flex-wrap gap-3" id="kb-process" data-status="process"></div></div>
+            </div>
+        </div>
+        <div class="accordion-item mb-3 border-0 shadow-sm rounded-4 overflow-hidden">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold fs-5" type="button" data-bs-toggle="collapse" data-bs-target="#colDone">
+                    <i class="fas fa-box text-success me-2"></i> 3. جاهزة للتسليم
+                    <span class="ms-auto me-2 badge bg-success text-white rounded-pill" id="kb-count-done">0</span>
+                    <span class="badge bg-light text-dark border me-3" id="kb-total-done">0 JOD</span>
+                </button>
+            </h2>
+            <div id="colDone" class="accordion-collapse collapse" data-bs-parent="#kanbanAccordion">
+                <div class="accordion-body bg-light"><div class="d-flex flex-wrap gap-3" id="kb-done" data-status="done"></div></div>
+            </div>
+        </div>
+        <div class="accordion-item mb-3 border-0 shadow-sm rounded-4 overflow-hidden">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold fs-5" type="button" data-bs-toggle="collapse" data-bs-target="#colDeliv">
+                    <i class="fas fa-check-double text-dark me-2"></i> 4. تم التسليم
+                    <span class="ms-auto me-2 badge text-white rounded-pill" style="background:#273c75" id="kb-count-delivered">0</span>
+                    <span class="badge bg-light text-dark border me-3" id="kb-total-delivered">0 JOD</span>
+                </button>
+            </h2>
+            <div id="colDeliv" class="accordion-collapse collapse" data-bs-parent="#kanbanAccordion">
+                <div class="accordion-body bg-light"><div class="d-flex flex-wrap gap-3" id="kb-delivered" data-status="delivered"></div></div>
+            </div>
+        </div>
+        <div class="accordion-item mb-3 border-0 shadow-sm rounded-4 overflow-hidden">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold fs-5" type="button" data-bs-toggle="collapse" data-bs-target="#colPost">
+                    <i class="fas fa-clock text-warning me-2" style="color:var(--status-postponed)!important"></i> 5. مؤجل
+                    <span class="ms-auto me-2 badge text-white rounded-pill" style="background:var(--status-postponed)" id="kb-count-postponed">0</span>
+                    <span class="badge bg-light text-dark border me-3" id="kb-total-postponed">0 JOD</span>
+                </button>
+            </h2>
+            <div id="colPost" class="accordion-collapse collapse" data-bs-parent="#kanbanAccordion">
+                <div class="accordion-body bg-light"><div class="d-flex flex-wrap gap-3" id="kb-postponed" data-status="postponed"></div></div>
+            </div>
+        </div>
+        <div class="accordion-item mb-3 border-0 shadow-sm rounded-4 overflow-hidden">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold fs-5" type="button" data-bs-toggle="collapse" data-bs-target="#colCanc">
+                    <i class="fas fa-times-circle text-danger me-2"></i> 6. ملغي
+                    <span class="ms-auto me-2 badge bg-danger text-white rounded-pill" id="kb-count-canceled">0</span>
+                    <span class="badge bg-light text-dark border me-3" id="kb-total-canceled">0 JOD</span>
+                </button>
+            </h2>
+            <div id="colCanc" class="accordion-collapse collapse" data-bs-parent="#kanbanAccordion">
+                <div class="accordion-body bg-light"><div class="d-flex flex-wrap gap-3" id="kb-canceled" data-status="canceled"></div></div>
+            </div>
+        </div>
+        <div class="accordion-item mb-3 border-0 shadow-sm rounded-4 overflow-hidden">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold fs-5" type="button" data-bs-toggle="collapse" data-bs-target="#colStore">
+                    <i class="fas fa-warehouse text-secondary me-2"></i> 7. مخزن
+                    <span class="ms-auto me-2 badge bg-secondary text-white rounded-pill" id="kb-count-stored">0</span>
+                    <span class="badge bg-light text-dark border me-3" id="kb-total-stored">0 JOD</span>
+                </button>
+            </h2>
+            <div id="colStore" class="accordion-collapse collapse" data-bs-parent="#kanbanAccordion">
+                <div class="accordion-body bg-light"><div class="d-flex flex-wrap gap-3" id="kb-stored" data-status="stored"></div></div>
+            </div>
+        </div>
+    </div>
+</div>
                 <div id="tab-reports" class="tab-content" style="display:none;">
                     <div class="card p-4 mb-4 shadow-sm border-0">
                         <h5 class="fw-bold mb-4 text-secondary"><i class="fas fa-filter text-primary me-2"></i> محرك البحث والفلاتر</h5>
@@ -840,6 +947,7 @@
                 logsData: {},
                 charts: {},
                 selectedIds: new Set(),
+	selectedKbIds: new Set(), // ضيفه تحت selectedIds
                 pagesList: [],
                 modelsList: [],
                 modalOrderId: null,
@@ -1041,12 +1149,8 @@
                 renderDashboard() {
                     const orders = Object.values(this.data);
                     const total = orders.length;
-                    const counts = {
-                        new: 0,
-                        process: 0,
-                        done: 0,
-                        delivered: 0
-                    };
+// استبدل سطر const counts = { ... } بـ:
+const counts = { new: 0, process: 0, done: 0, delivered: 0, postponed: 0, canceled: 0, stored: 0 };
                     let totalRev = 0;
                     const revByModel = {},
                         ordersByUser = {},
@@ -1075,11 +1179,12 @@
                     this.charts.status = new Chart(document.getElementById('statusChart'), {
                         type: 'doughnut',
                         data: {
-                            labels: ['جديدة', 'تحضير', 'جاهزة', 'مسلمة'],
-                            datasets: [{
-                                data: [counts.new, counts.process, counts.done, counts.delivered],
-                                backgroundColor: ['#ffc107', '#17a2b8', '#28a745', '#273c75']
-                            }]
+labels: ['جديدة', 'تحضير', 'جاهزة', 'مسلمة', 'مؤجل', 'ملغي', 'مخزن'],
+datasets: [{
+    data: [counts.new, counts.process, counts.done, counts.delivered, counts.postponed, counts.canceled, counts.stored],
+    backgroundColor: ['#ffc107', '#17a2b8', '#28a745', '#273c75', '#fd7e14', '#dc3545', '#6c757d']
+}]         
+                   }]
                         }
                     });
 
@@ -1129,72 +1234,164 @@
                             indexAxis: 'y'
                         },
                         data: {
-                            labels: ['جديدة', 'تحضير', 'جاهزة', 'مسلمة'],
-                            datasets: [{
-                                label: 'مسار الطلبات',
-                                data: [counts.new, counts.process, counts.done, counts.delivered],
-                                backgroundColor: '#2b2d42'
-                            }]
+                            labels: ['جديدة', 'تحضير', 'جاهزة', 'مسلمة', 'مؤجل', 'ملغي', 'مخزن'],
+datasets: [{
+    label: 'مسار الطلبات',
+    data: [counts.new, counts.process, counts.done, counts.delivered, counts.postponed, counts.canceled, counts.stored],
+    backgroundColor: '#2b2d42'
+}]
                         }
                     });
                 },
 
                 renderKanban() {
-                    const query = (document.getElementById('kanbanSearch').value || '').toLowerCase();
-                    const cols = {
-                        new: [],
-                        process: [],
-                        done: [],
-                        delivered: []
-                    };
-                    Object.entries(this.data).forEach(([id, o]) => {
-                        if (query && !JSON.stringify(o).toLowerCase().includes(query)) return;
-                        if (cols[o.status]) cols[o.status].push({
-                            id,
-                            ...o
-                        });
-                    });
-                    ['new', 'process', 'done', 'delivered'].forEach(status => {
-                        const container = document.getElementById(`kb-${status}`);
-                        document.getElementById(`kb-count-${status}`).innerText = cols[status].length;
-                        container.innerHTML = cols[status].map(o => this.getKanbanCard(o)).join('');
-                    });
-                    this.initSortable();
-                },
-                getKanbanCard(o) {
-                    const badges = {
-                        high: 'badge-priority-high',
-                        med: 'badge-priority-med',
-                        low: 'badge-priority-low'
-                    };
-                    return `<div class="order-card ${o.status}-border" data-id="${o.id}" onclick="app.showOrderDetails('${o.id}', ${JSON.stringify(o).replace(/"/g, '&quot;')})"><span class="badge ${badges[o.priority||'med']} position-absolute top-0 start-0 m-2"><i class="fas fa-flag"></i></span><div class="d-flex justify-content-between"><strong>${o.custName}</strong><span class="fw-bold text-success">${o.price} JOD</span></div><div class="text-muted small">${o.model} | ${o.size}</div>${o.tags ? `<span class="badge bg-light">${o.tags}</span>` : ''}<div class="mt-2 small text-muted"><i class="fas fa-user"></i> ${o.entryUser} | ${o.date}</div></div>`;
-                },
-                filterKanban() {
-                    this.renderKanban();
-                },
-                initSortable() {
-                    if (this.currentUserRole !== 'Admin') return;
-                    ['new', 'process', 'done', 'delivered'].forEach(status => {
-                        const el = document.getElementById(`kb-${status}`);
-                        if (el._sortable) el._sortable.destroy();
-                        el._sortable = Sortable.create(el, {
-                            group: 'kanban',
-                            animation: 250,
-                            ghostClass: 'card-ghost',
-                            onEnd: (evt) => {
-                                const id = evt.item.getAttribute('data-id');
-                                const newStatus = evt.to.getAttribute('data-status');
-                                const oldStatus = evt.from.getAttribute('data-status');
-                                if (newStatus !== oldStatus) {
-                                    update(ref(db, `orders/${id}`), {
-                                        status: newStatus
-                                    }).then(() => {
-                                        this.logAction('status', id, `سحب من ${oldStatus} إلى ${newStatus}`);
-                                        this.notify('تم تحديث الحالة', 'success');
-                                    });
-                                }
-                            }
-                        });
+            const query = (document.getElementById('kanbanSearch').value || '').toLowerCase();
+            const statuses = ['new', 'process', 'done', 'delivered', 'postponed', 'canceled', 'stored'];
+            
+            const cols = {};
+            const sums = {};
+            statuses.forEach(s => { cols[s] = []; sums[s] = 0; });
+
+            Object.entries(this.data).forEach(([id, o]) => {
+                if (query && !JSON.stringify(o).toLowerCase().includes(query)) return;
+                if (cols[o.status] !== undefined) {
+                    cols[o.status].push({ id, ...o });
+                    sums[o.status] += parseFloat(o.price || 0);
+                }
+            });
+
+            statuses.forEach(status => {
+                const container = document.getElementById(`kb-${status}`);
+                const countEl = document.getElementById(`kb-count-${status}`);
+                const totalEl = document.getElementById(`kb-total-${status}`);
+                
+                if (countEl) countEl.innerText = cols[status].length;
+                if (totalEl) totalEl.innerText = sums[status] + ' JOD';
+                if (container) container.innerHTML = cols[status].map(o => this.getKanbanCard(o)).join('');
+            });
+            this.initSortable();
+        },
+
+        getKanbanCard(o) {
+            const badges = { high: 'badge-priority-high', med: 'badge-priority-med', low: 'badge-priority-low' };
+            const isChecked = this.selectedKbIds.has(o.id) ? 'checked' : '';
+            return `
+            <div class="order-card ${o.status}-border position-relative bg-white p-3 rounded-3 shadow-sm" style="width: 320px; cursor: pointer; border-right-width: 6px;" onclick="app.showOrderDetails('${o.id}', ${JSON.stringify(o).replace(/"/g, '&quot;')})">
+                <span class="badge ${badges[o.priority||'med']} position-absolute top-0 start-0 m-2"><i class="fas fa-flag"></i></span>
+                
+                <div class="form-check position-absolute top-0 end-0 m-2" onclick="event.stopPropagation()">
+                    <input class="form-check-input border-secondary" type="checkbox" onchange="app.toggleKbSelect('${o.id}')" ${isChecked} style="transform: scale(1.3); cursor: pointer;">
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <strong class="fs-6">${o.custName}</strong>
+                    <span class="fw-bold text-success">${o.price} JOD</span>
+                </div>
+                <div class="text-muted small mt-2">
+                    <i class="fas fa-tag"></i> ${o.model} | نمرة: ${o.size}
+                </div>
+                <div class="text-muted small mt-1 fw-bold">
+                    <i class="fas fa-weight-hanging text-primary"></i> ${o.weight} kg &nbsp;|&nbsp; <i class="fas fa-ruler-vertical text-primary"></i> ${o.height} cm
+                </div>
+                ${o.tags ? `<div class="mt-2"><span class="badge bg-light text-dark border">${o.tags}</span></div>` : ''}
+                <div class="mt-2 pt-2 border-top small text-muted d-flex justify-content-between">
+                    <span><i class="fas fa-user"></i> ${o.entryUser}</span>
+                    <span>${o.date}</span>
+                </div>
+            </div>`;
+        },
+
+        toggleKbSelect(id) {
+            if (this.selectedKbIds.has(id)) this.selectedKbIds.delete(id);
+            else this.selectedKbIds.add(id);
+            this.updateKbBulkPanel();
+        },
+
+        updateKbBulkPanel() {
+            const panel = document.getElementById('kbBulkActionsPanel');
+            if (panel) panel.style.display = this.selectedKbIds.size > 0 ? 'block' : 'none';
+            const countEl = document.getElementById('kbSelectedCount');
+            if(countEl) countEl.innerText = this.selectedKbIds.size;
+        },
+
+        async kbBulkStatus(newStatus) {
+            if (this.selectedKbIds.size === 0) return;
+            const updates = {};
+            this.selectedKbIds.forEach(id => {
+                updates[`orders/${id}/status`] = newStatus;
+                this.logAction('status', id, `تعديل جماعي من البورد إلى ${newStatus}`);
+            });
+            await update(ref(db), updates);
+            this.selectedKbIds.clear();
+            this.updateKbBulkPanel();
+            this.renderKanban();
+            this.renderTable();
+            this.updateStageCards();
+            this.notify('تم تحديث حالة الطلبات بنجاح', 'success');
+        },
+
+        kbBulkPrint() {
+            if (this.selectedKbIds.size === 0) return;
+            const win = window.open('', '_blank');
+            let html = `<html><head><title>طباعة طلبات متعددة</title><style>
+                body { font-family: 'Tahoma', Arial; padding: 2rem; direction: rtl; }
+                .order-box { border: 2px solid #000; padding: 20px; margin-bottom: 30px; border-radius: 10px; page-break-inside: avoid; }
+                table { width: 100%; text-align: right; margin-top:10px; font-size: 18px; }
+                th { padding: 8px; width: 20%; border-bottom: 1px solid #ddd; }
+                td { padding: 8px; border-bottom: 1px solid #ddd; }
+                h2 { text-align: center; margin-bottom: 30px; }
+            </style></head><body>
+            <h2>كشف طلبات التسليم (${this.selectedKbIds.size} طلب)</h2>`;
+            
+            this.selectedKbIds.forEach(id => {
+                const o = this.data[id];
+                if(o) {
+                    html += `
+                    <div class="order-box">
+                        <h3>رقم المرجع: ${id.slice(-8)}</h3>
+                        <table cellspacing="0">
+                            <tr><th>اسم الزبون:</th><td colspan="3"><strong>${o.custName}</strong></td></tr>
+                            <tr><th>الموبايل:</th><td dir="ltr" colspan="3"><strong>${o.custMob}</strong></td></tr>
+                            <tr><th>العنوان:</th><td colspan="3">${o.custAddr}</td></tr>
+                            <tr><th>الموديل:</th><td>${o.model} (نمرة: ${o.size})</td><th>الوزن/الطول:</th><td>${o.weight}kg / ${o.height}cm</td></tr>
+                            <tr><th>المبلغ المطلوب:</th><td colspan="3" style="font-weight:bold; font-size:22px;">${o.price} دينار</td></tr>
+                            <tr><th>ملاحظات:</th><td colspan="3">${o.tags || 'لا يوجد'}</td></tr>
+                        </table>
+                    </div>`;
+                }
+            });
+            
+            html += `</body></html>`;
+            win.document.write(html);
+            win.document.close();
+            setTimeout(() => win.print(), 500);
+        },
+
+        initSortable() {
+            if (this.currentUserRole !== 'Admin') return;
+            ['new', 'process', 'done', 'delivered', 'postponed', 'canceled', 'stored'].forEach(status => {
+                const el = document.getElementById(`kb-${status}`);
+                if (!el) return;
+                if (el._sortable) el._sortable.destroy();
+                el._sortable = Sortable.create(el, {
+                    group: 'kanban',
+                    animation: 250,
+                    ghostClass: 'card-ghost',
+                    onEnd: (evt) => {
+                        const id = evt.item.getAttribute('data-id');
+                        // عشان نعالج مشكلة انه ال Accordion ما بيقرا ال data-status صح وقت السحب السريع
+                        const newStatus = evt.to.getAttribute('data-status'); 
+                        const oldStatus = evt.from.getAttribute('data-status');
+                        if (newStatus && oldStatus && newStatus !== oldStatus) {
+                            update(ref(db, `orders/${id}`), { status: newStatus }).then(() => {
+                                this.logAction('status', id, `سحب إلى ${newStatus}`);
+                                this.notify('تم تحديث الحالة', 'success');
+                            });
+                        }
+                    }
+                });
+            });
+        },
                     });
                 },
 
@@ -1204,11 +1401,14 @@
                     const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
                     const container = document.getElementById('modalOrderContent');
                     const statusMap = {
-                        new: 'جديدة',
-                        process: 'تحضير',
-                        done: 'جاهزة',
-                        delivered: 'مسلمة'
-                    };
+    new: 'جديدة',
+    process: 'تحضير',
+    done: 'جاهزة',
+    delivered: 'مسلمة',
+    postponed: 'مؤجل',
+    canceled: 'ملغي',
+    stored: 'مخزن'
+};
                     container.innerHTML = `<div class="row"><div class="col-6"><strong>رقم الطلب:</strong> ${id}</div><div class="col-6"><strong>التاريخ:</strong> ${order.date}</div><div class="col-12"><hr></div><div class="col-6"><strong>الزبون:</strong> ${order.custName}</div><div class="col-6"><strong>الموبايل:</strong> ${order.custMob}</div><div class="col-12"><strong>العنوان:</strong> ${order.custAddr}</div><div class="col-6"><strong>الموديل:</strong> ${order.model}</div><div class="col-6"><strong>النمرة:</strong> ${order.size}</div><div class="col-4"><strong>الوزن:</strong> ${order.weight} kg</div><div class="col-4"><strong>الطول:</strong> ${order.height} cm</div><div class="col-4"><strong>السعر:</strong> ${order.price} JOD</div><div class="col-6"><strong>الصفحة:</strong> ${order.pageName}</div><div class="col-6"><strong>الحالة:</strong> ${statusMap[order.status]}</div><div class="col-12"><strong>علامات:</strong> ${order.tags || 'لا يوجد'}</div><div class="col-12"><strong>المدخل:</strong> ${order.entryUser}</div></div>`;
                     document.getElementById('printOrderBtn').onclick = () => this.printOrder(order);
                     document.querySelectorAll('#orderDetailModal .dropdown-item').forEach(btn => btn.onclick = (e) => {
