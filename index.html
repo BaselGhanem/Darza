@@ -1268,6 +1268,9 @@ datasets: [{
                 if (cols[o.status] !== undefined) {
                     cols[o.status].push({ id, ...o });
                     sums[o.status] += parseFloat(o.price || 0);
+filterKanban() {
+            this.renderKanban();
+        },
                 }
             });
 
@@ -1403,8 +1406,7 @@ datasets: [{
                 });
             });
         },
-                    });
-                },
+
 
                 showOrderDetails(id, order) {
                     this.modalOrderId = id;
