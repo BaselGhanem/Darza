@@ -1186,58 +1186,73 @@ const counts = { new: 0, process: 0, done: 0, delivered: 0, postponed: 0, cancel
                 },
 
                 buildCharts(counts, revByModel, ordersByUser, priorityCounts) {
-                    if (this.charts.status) this.charts.status.destroy();
-                    this.charts.status = new Chart(document.getElementById('statusChart'), {
-                        type: 'doughnut',
-                        data: {
-labels: ['جديدة', 'تحضير', 'جاهزة', 'مسلمة', 'مؤجل', 'ملغي', 'مخزن'],
-datasets: [{
-    data: [counts.new, counts.process, counts.done, counts.delivered, counts.postponed, counts.canceled, counts.stored],
-    backgroundColor: ['#ffc107', '#17a2b8', '#28a745', '#273c75', '#fd7e14', '#dc3545', '#6c757d']
-}]         
-                   }]
-                        }
-                    });
+    if (this.charts.status) this.charts.status.destroy();
+    this.charts.status = new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['جديدة', 'تحضير', 'جاهزة', 'مسلمة', 'مؤجل', 'ملغي', 'مخزن'],
+            datasets: [{
+                data: [counts.new, counts.process, counts.done, counts.delivered, counts.postponed, counts.canceled, counts.stored],
+                backgroundColor: ['#ffc107', '#17a2b8', '#28a745', '#273c75', '#fd7e14', '#dc3545', '#6c757d']
+            }]
+        } // تم تصحيح الأقواس هنا وإزالة الزوائد
+    });
 
-                    if (this.charts.model) this.charts.model.destroy();
-                    const topModels = Object.entries(revByModel).sort((a, b) => b[1] - a[1]).slice(0, 7);
-                    this.charts.model = new Chart(document.getElementById('modelChart'), {
-                        type: 'bar',
-                        data: {
-                            labels: topModels.map(m => m[0]),
-                            datasets: [{
-                                label: 'الإيرادات (JOD)',
-                                data: topModels.map(m => m[1]),
-                                backgroundColor: '#099999'
-                            }]
-                        }
-                    });
+    if (this.charts.model) this.charts.model.destroy();
+    const topModels = Object.entries(revByModel).sort((a, b) => b[1] - a[1]).slice(0, 7);
+    this.charts.model = new Chart(document.getElementById('modelChart'), {
+        type: 'bar',
+        data: {
+            labels: topModels.map(m => m[0]),
+            datasets: [{
+                label: 'الإيرادات (JOD)',
+                data: topModels.map(m => m[1]),
+                backgroundColor: '#099999'
+            }]
+        }
+    });
 
-                    if (this.charts.user) this.charts.user.destroy();
-                    this.charts.user = new Chart(document.getElementById('userChart'), {
-                        type: 'bar',
-                        data: {
-                            labels: Object.keys(ordersByUser),
-                            datasets: [{
-                                label: 'عدد الطلبات',
-                                data: Object.values(ordersByUser),
-                                backgroundColor: '#17a2b8'
-                            }]
-                        }
-                    });
+    if (this.charts.user) this.charts.user.destroy();
+    this.charts.user = new Chart(document.getElementById('userChart'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(ordersByUser),
+            datasets: [{
+                label: 'عدد الطلبات',
+                data: Object.values(ordersByUser),
+                backgroundColor: '#17a2b8'
+            }]
+        }
+    });
 
-                    if (this.charts.priority) this.charts.priority.destroy();
-                    this.charts.priority = new Chart(document.getElementById('priorityChart'), {
-                        type: 'pie',
-                        data: {
-                            labels: ['عالية', 'متوسطة', 'عادية'],
-                            datasets: [{
-                                data: [priorityCounts.high, priorityCounts.med, priorityCounts.low],
-                                backgroundColor: ['#d63031', '#eccc68', '#7bed9f']
-                            }]
-                        }
-                    });
+    if (this.charts.priority) this.charts.priority.destroy();
+    this.charts.priority = new Chart(document.getElementById('priorityChart'), {
+        type: 'pie',
+        data: {
+            labels: ['عالية', 'متوسطة', 'عادية'],
+            datasets: [{
+                data: [priorityCounts.high, priorityCounts.med, priorityCounts.low],
+                backgroundColor: ['#d63031', '#eccc68', '#7bed9f']
+            }]
+        }
+    });
 
+    if (this.charts.funnel) this.charts.funnel.destroy();
+    this.charts.funnel = new Chart(document.getElementById('funnelChart'), {
+        type: 'bar',
+        options: {
+            indexAxis: 'y'
+        },
+        data: {
+            labels: ['جديدة', 'تحضير', 'جاهزة', 'مسلمة', 'مؤجل', 'ملغي', 'مخزن'],
+            datasets: [{
+                label: 'مسار الطلبات',
+                data: [counts.new, counts.process, counts.done, counts.delivered, counts.postponed, counts.canceled, counts.stored],
+                backgroundColor: '#2b2d42'
+            }]
+        }
+    });
+},
                     if (this.charts.funnel) this.charts.funnel.destroy();
                     this.charts.funnel = new Chart(document.getElementById('funnelChart'), {
                         type: 'bar',
@@ -1446,39 +1461,35 @@ Object.entries(this.data).forEach(([id, o]) => { if (query && !JSON.stringify(o)
                         return true;
                     });
                 },
-                updateStageCards() {
-                    const filtered = this.getFilteredData();
-                    const totals = {
-                        new: {
-                            count: 0,
-                            sum: 0
-                        },
-                        process: {
-                            count: 0,
-                            sum: 0
-                        },
-                        done: {
-                            count: 0,
-                            sum: 0
-                        },
-                        delivered: {
-                            count: 0,
-                            sum: 0
-                        }
-                    };
-                    filtered.forEach(([_, o]) => {
-                        totals[o.status].count++;
-                        totals[o.status].sum += +o.price;
-                    });
-                    document.getElementById('cardCountNew').innerText = totals.new.count;
-                    document.getElementById('cardTotalNew').innerText = totals.new.sum + ' JOD';
-                    document.getElementById('cardCountProcess').innerText = totals.process.count;
-                    document.getElementById('cardTotalProcess').innerText = totals.process.sum + ' JOD';
-                    document.getElementById('cardCountDone').innerText = totals.done.count;
-                    document.getElementById('cardTotalDone').innerText = totals.done.sum + ' JOD';
-                    document.getElementById('cardCountDelivered').innerText = totals.delivered.count;
-                    document.getElementById('cardTotalDelivered').innerText = totals.delivered.sum + ' JOD';
-                },
+updateStageCards() {
+    const filtered = this.getFilteredData();
+    const totals = {
+        new: { count: 0, sum: 0 },
+        process: { count: 0, sum: 0 },
+        done: { count: 0, sum: 0 },
+        delivered: { count: 0, sum: 0 },
+        postponed: { count: 0, sum: 0 }, // إضافة الحالة الجديدة
+        canceled: { count: 0, sum: 0 },  // إضافة الحالة الجديدة
+        stored: { count: 0, sum: 0 }     // إضافة الحالة الجديدة
+    };
+
+    filtered.forEach(([_, o]) => {
+        // حماية إضافية في حال كان هناك طلب بحالة غير معروفة
+        if (totals[o.status]) { 
+            totals[o.status].count++;
+            totals[o.status].sum += +o.price;
+        }
+    });
+
+    document.getElementById('cardCountNew').innerText = totals.new.count;
+    document.getElementById('cardTotalNew').innerText = totals.new.sum + ' JOD';
+    document.getElementById('cardCountProcess').innerText = totals.process.count;
+    document.getElementById('cardTotalProcess').innerText = totals.process.sum + ' JOD';
+    document.getElementById('cardCountDone').innerText = totals.done.count;
+    document.getElementById('cardTotalDone').innerText = totals.done.sum + ' JOD';
+    document.getElementById('cardCountDelivered').innerText = totals.delivered.count;
+    document.getElementById('cardTotalDelivered').innerText = totals.delivered.sum + ' JOD';
+},
                 renderTable() {
                     const filtered = this.getFilteredData();
                     const tbody = document.getElementById('tableBody');
