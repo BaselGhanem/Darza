@@ -1263,31 +1263,7 @@ datasets: [{
             const sums = {};
             statuses.forEach(s => { cols[s] = []; sums[s] = 0; });
 
-            Object.entries(this.data).forEach(([id, o]) => {
-                if (query && !JSON.stringify(o).toLowerCase().includes(query)) return;
-                if (cols[o.status] !== undefined) {
-                    cols[o.status].push({ id, ...o });
-                    sums[o.status] += parseFloat(o.price || 0);
-filterKanban() {
-            this.renderKanban();
-        },
-                }
-            });
-
-            statuses.forEach(status => {
-                const container = document.getElementById(`kb-${status}`);
-                const countEl = document.getElementById(`kb-count-${status}`);
-                const totalEl = document.getElementById(`kb-total-${status}`);
-                
-                if (countEl) countEl.innerText = cols[status].length;
-                if (totalEl) totalEl.innerText = sums[status] + ' JOD';
-                if (container) container.innerHTML = cols[status].map(o => this.getKanbanCard(o)).join('');
-            });
-            this.initSortable();
-        },
-
-        getKanbanCard(o) {
-            const badges = { high: 'badge-priority-high', med: 'badge-priority-med', low: 'badge-priority-low' };
+Object.entries(this.data).forEach(([id, o]) => { if (query && !JSON.stringify(o).toLowerCase().includes(query)) return; if (cols[o.status] !== undefined) { cols[o.status].push({ id, ...o }); sums[o.status] += parseFloat(o.price || 0); } }); statuses.forEach(status => { const container = document.getElementById(`kb-${status}`); const countEl = document.getElementById(`kb-count-${status}`); const totalEl = document.getElementById(`kb-total-${status}`); if (countEl) countEl.innerText = cols[status].length; if (totalEl) totalEl.innerText = sums[status] + ' JOD'; if (container) container.innerHTML = cols[status].map(o => this.getKanbanCard(o)).join(''); }); this.initSortable(); }, filterKanban() { this.renderKanban(); }, getKanbanCard(o) {            const badges = { high: 'badge-priority-high', med: 'badge-priority-med', low: 'badge-priority-low' };
             const isChecked = this.selectedKbIds.has(o.id) ? 'checked' : '';
             return `
             <div class="order-card ${o.status}-border position-relative bg-white p-3 rounded-3 shadow-sm" style="width: 320px; cursor: pointer; border-right-width: 6px;" onclick="app.showOrderDetails('${o.id}', ${JSON.stringify(o).replace(/"/g, '&quot;')})">
