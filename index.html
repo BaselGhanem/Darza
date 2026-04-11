@@ -536,7 +536,7 @@
                         </div>
 
                         <div class="col-md-6"><label class="form-label fw-bold">اسم الصفحة (المصدر) <span class="text-danger">*</span></label><select id="pageNameSelect" class="form-select" required><option value="">اختر الصفحة</option></select></div>
-                        <div class="col-md-6"><label class="form-label fw-bold">محافظات (ملاحظات)</label><input type="text" id="tags" class="form-control" placeholder="مثال: vip, هدية, توصيل مجاني"></div>
+                        <div class="col-md-6"><label class="form-label fw-bold"> ملاحظات</label><input type="text" id="tags" class="form-control" placeholder="مثال: vip, هدية, توصيل مجاني"></div>
                         
                         <div class="col-12 mt-5">
                             <button type="submit" class="btn btn-main w-100 py-3 fs-5 rounded-pill"><i class="fas fa-save me-2"></i> حفظ واعتماد الطلب</button>
@@ -1463,11 +1463,11 @@
                                 <tr><th>العنوان:</th><td colspan="3">${o.country || ''} - ${o.governorate || ''} - ${o.custAddr}</td></tr>
                                 <tr><th>الموديل:</th><td>${o.model} (نمرة: ${o.size})</td><th>الوزن/الطول:</th><td>${o.weight}kg / ${o.height}cm</td></tr>
                                 <tr><th>سعر شامل التوصيل:</th><td colspan="3" style="font-weight:bold; font-size:22px;">${o.price} ${o.currency || 'JOD'}</td></tr>
-                                <tr><th>محافظات (ملاحظات):</th><td colspan="3">${o.tags || 'لا يوجد'}</td></tr>
+                                <tr><thملاحظات</th><td colspan="3">${o.tags || 'لا يوجد'}</td></tr>
                             </table>
                         </div>`;
                         // Prep status update to delivered upon print
-                        updates[`orders/${id}/status`] = 'delivered';
+                        updates[`orders/${id}/status`] = 'done';
                     }
                 });
                 html += `</body></html>`;
@@ -1476,7 +1476,7 @@
                 setTimeout(() => {
                     win.print();
                     update(ref(db), updates).then(() => {
-                        this.notify('تمت الطباعة وتحويل الحالات إلى تم التسليم', 'success');
+                        this.notify('تمت الطباعة وتحويل الحالات إلى جاهزة التسليم', 'success');
                     });
                 }, 500);
             },
@@ -1526,7 +1526,7 @@
                         <div class="col-md-4"><label class="small text-muted fw-bold">سعر شامل التوصيل</label><input type="number" step="0.5" class="form-control text-success fw-bold" id="modPrice" value="${order.price}" required ${isReadOnly}></div>
                         <div class="col-md-6"><label class="small text-muted fw-bold">الوزن (kg)</label><input type="number" step="0.1" class="form-control" id="modWeight" value="${order.weight}" required ${isReadOnly}></div>
                         <div class="col-md-6"><label class="small text-muted fw-bold">الطول (cm)</label><input type="number" class="form-control" id="modHeight" value="${order.height}" required ${isReadOnly}></div>
-                        <div class="col-md-12"><label class="small text-muted fw-bold">محافظات (ملاحظات)</label><input class="form-control" id="modTags" value="${order.tags || ''}" ${isReadOnly}></div>
+                        <div class="col-md-12"><label class="small text-muted fw-bold"> (ملاحظات)</label><input class="form-control" id="modTags" value="${order.tags || ''}" ${isReadOnly}></div>
                         
                         <div class="col-12"><hr></div>
                         <div class="col-md-4"><strong class="small text-muted">رقم الطلب:</strong><br>${id.slice(-6)}</div>
@@ -1593,13 +1593,13 @@
                     <tr><th>الموديل والنمرة</th><td>${order.model} - ${order.size}</td></tr>
                     <tr><th>الوزن والطول</th><td>${order.weight}kg / ${order.height}cm</td></tr>
                     <tr><th>سعر شامل التوصيل</th><td style="font-weight:bold;">${order.price} ${order.currency || 'JOD'}</td></tr>
-                    <tr><th>المحافظات (الملاحظات)</th><td>${order.tags || 'لا يوجد'}</td></tr>
+                    <tr><th> (الملاحظات)</th><td>${order.tags || 'لا يوجد'}</td></tr>
                 </table>
                 </body></html>`);
                 win.document.close();
                 setTimeout(() => {
                     win.print();
-                    if(id) this.moveOrderStage(id, 'delivered');
+                    if(id) this.moveOrderStage(id, 'done');
                 }, 500);
             },
 
@@ -1818,7 +1818,7 @@
                     'السعر الشامل': o.price,
                     'العملة': o.currency,
                     'الحالة': o.status,
-                    'الملاحظات (محافظات)': o.tags,
+                    ' (ملاحظات)': o.tags,
                     'المدخل': o.entryUser,
                     'التاريخ': o.date
                 }));
