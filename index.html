@@ -343,7 +343,37 @@
             .stage-cards-wrapper { overflow-x: auto; white-space: nowrap; padding-bottom: 10px; }
             .stage-cards-wrapper .col-md-3 { display: inline-block; width: 200px; float: none; }
         }
+        /* --- تصميم الـ Wizard الاحترافي --- */
+        .wizard-container {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .step-indicator { display: flex; justify-content: space-between; margin-bottom: 3rem; position: relative; padding: 0 15px; }
+        .step-indicator::before { content: ''; position: absolute; top: 50%; left: 25px; right: 25px; height: 4px; background: #e2e8f0; z-index: 1; transform: translateY(-50%); border-radius: 4px; }
+        .step-progress-line { position: absolute; top: 50%; right: 25px; height: 4px; background: linear-gradient(90deg, #11cdef, var(--primary)); z-index: 2; transform: translateY(-50%); border-radius: 4px; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); width: 0%; }
+        
+        .step-dot { width: 45px; height: 45px; background: white; color: #a0aec0; border: 3px solid #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem; z-index: 3; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
+        .step-dot.active { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 20px rgba(9, 153, 153, 0.3); transform: scale(1.1); }
+        .step-dot.completed { background: linear-gradient(135deg, var(--primary), #11cdef); border-color: transparent; color: white; box-shadow: 0 5px 15px rgba(9, 153, 153, 0.4); }
+
+        .step-content { display: none; opacity: 0; transform: translateX(30px); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .step-content.active { display: flex; opacity: 1; transform: translateX(0); }
+
+        .btn-nav { border-radius: 16px; padding: 0.8rem 2rem; font-weight: 700; letter-spacing: 0.5px; transition: all 0.3s ease; }
+        .btn-next { background: linear-gradient(135deg, var(--primary) 0%, #067070 100%); color: white; box-shadow: 0 10px 20px rgba(9, 153, 153, 0.2); border: none; }
+        .btn-next:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(9, 153, 153, 0.3); color: white; }
+        .btn-prev { background: white; color: #4a5568; border: 2px solid #e2e8f0; }
+        .btn-prev:hover { background: #f8fafc; border-color: #cbd5e0; transform: translateY(-2px); }
     </style>
+    
 </head>
 
 <body>
@@ -480,72 +510,93 @@
                 </div>
             </div>
 
-            <div id="tab-entry" class="tab-content" style="display:none;">
-                <div class="card p-5 mx-auto shadow" style="max-width: 900px;">
-                    <div class="text-center mb-5">
-                        <h3 class="fw-bold" style="color: var(--primary);">إضافة طلبية جديدة</h3>
-                        <p class="text-muted">الرجاء تعبئة كافة الحقول بدقة</p>
-                    </div>
-                    <form id="orderForm" class="row g-4">
-                        <div class="col-md-6">
-                            <label class="form-label text-muted fw-bold small"><i class="fas fa-user text-primary"></i> المدخل الحالي</label>
-                            <select id="entryUserSelect" class="form-select bg-light fw-bold text-primary border-0" required>
-                                <option value="">جاري التحميل...</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6"><label class="form-label text-muted fw-bold small"><i class="fas fa-calendar text-primary"></i> تاريخ الإدخال</label><input type="text" id="entryDate" class="form-control bg-light border-0 fw-bold" readonly></div>
-                        
-                        <div class="col-12"><hr class="text-muted opacity-25"></div>
-                        
-                        <div class="col-md-4"><label class="form-label fw-bold">اسم الزبون <span class="text-danger">*</span></label><input type="text" id="custName" class="form-control" required placeholder="الاسم الرباعي"></div>
-                        
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">الدولة <span class="text-danger">*</span></label>
-                            <select id="countrySelect" class="form-select" required onchange="app.updateCountry()">
-                                <option value="Jordan" selected>الأردن</option>
-                                <option value="Palestine">فلسطين</option>
-                            </select>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">المحافظة <span class="text-danger">*</span></label>
-                            <select id="governorateSelect" class="form-select" required>
-                                </select>
-                        </div>
+<div class="wizard-container mx-auto mt-3" style="max-width: 900px;">
+    
+    <div class="text-center mb-5">
+        <h3 class="fw-bold" style="color: var(--secondary);">إدخال طلبية جديدة</h3>
+        <p class="text-muted">نظام إدخال الطلبات السريع والذكي</p>
+    </div>
 
-                        <div class="col-md-6"><label class="form-label fw-bold">العنوان التفصيلي <span class="text-danger">*</span></label><input type="text" id="custAddr" class="form-control" required placeholder="المنطقة - الشارع - المعلم"></div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">الموبايل <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light fw-bold" id="phonePrefix" dir="ltr">+962</span>
-                                <input type="text" id="custMob" class="form-control" placeholder="رقم الهاتف بدون الصفر" required>
-                            </div>
-                        </div>
+    <div class="step-indicator">
+        <div class="step-progress-line" id="progress-line"></div>
+        <div class="step-dot active" id="dot-1"><i class="fas fa-user"></i></div>
+        <div class="step-dot" id="dot-2"><i class="fas fa-box-open"></i></div>
+        <div class="step-dot" id="dot-3"><i class="fas fa-check-circle"></i></div>
+    </div>
 
-                        <div class="col-md-3"><label class="form-label fw-bold">الموديل <span class="text-danger">*</span></label><select id="modelSelect" class="form-select" required><option value="">اختر الموديل</option></select></div>
-                        <div class="col-md-2"><label class="form-label fw-bold">النمرة <span class="text-danger">*</span></label><input type="text" id="size" class="form-control" required></div>
-                        <div class="col-md-2"><label class="form-label fw-bold">الوزن <small class="text-muted">(kg)</small> <span class="text-danger">*</span></label><input type="number" step="0.1" id="weight" class="form-control" required></div>
-                        <div class="col-md-2"><label class="form-label fw-bold">الطول <small class="text-muted">(cm)</small> <span class="text-danger">*</span></label><input type="number" id="height" class="form-control" required></div>
-                        
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">سعر شامل التوصيل <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <input type="number" step="0.5" id="price" class="form-control fw-bold text-success" required>
-                                <span class="input-group-text bg-success text-white border-success" id="currencyLabel">JOD</span>
-                            </div>
-                        </div>
+    <form id="orderForm">
+        <div id="step-1" class="step-content active row g-4 w-100 m-0">
+            <h5 class="fw-bold text-primary mb-3"><i class="fas fa-id-card me-2"></i> بيانات العميل الأساسية</h5>
+            
+            <div class="col-md-8"><label class="form-label fw-bold">اسم الزبون <span class="text-danger">*</span></label><input type="text" id="custName" class="form-control" required placeholder="الاسم الرباعي"></div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">الموبايل <span class="text-danger">*</span></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light fw-bold" id="phonePrefix" dir="ltr">+962</span>
+                    <input type="text" id="custMob" class="form-control" placeholder="رقم الهاتف" required>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">الدولة <span class="text-danger">*</span></label>
+                <select id="countrySelect" class="form-select" required onchange="app.updateCountry()">
+                    <option value="Jordan" selected>الأردن</option>
+                    <option value="Palestine">فلسطين</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">المحافظة <span class="text-danger">*</span></label>
+                <select id="governorateSelect" class="form-select" required></select>
+            </div>
+            <div class="col-md-4"><label class="form-label fw-bold">العنوان التفصيلي <span class="text-danger">*</span></label><input type="text" id="custAddr" class="form-control" required placeholder="المنطقة - الشارع"></div>
+            
+            <div class="col-12 mt-5 text-start">
+                <button type="button" class="btn btn-nav btn-next" onclick="app.changeStep(1)">التفاصيل الفنية <i class="fas fa-arrow-left ms-2"></i></button>
+            </div>
+        </div>
 
-                        <div class="col-md-6"><label class="form-label fw-bold">اسم الصفحة (المصدر) <span class="text-danger">*</span></label><select id="pageNameSelect" class="form-select" required><option value="">اختر الصفحة</option></select></div>
-                        <div class="col-md-6"><label class="form-label fw-bold"> ملاحظات</label><input type="text" id="tags" class="form-control" placeholder="مثال: vip, هدية, توصيل مجاني"></div>
-                        
-                        <div class="col-12 mt-5">
-                            <button type="submit" class="btn btn-main w-100 py-3 fs-5 rounded-pill"><i class="fas fa-save me-2"></i> حفظ واعتماد الطلب</button>
-                            <button type="button" id="printLastOrderBtn" class="btn btn-outline-info w-100 py-2 fs-6 rounded-pill mt-3 fw-bold" style="display:none;" onclick="app.printLastOrder()"><i class="fas fa-print me-2"></i> طباعة الطلب الأخير</button>
-                        </div>
-                    </form>
+        <div id="step-2" class="step-content row g-4 w-100 m-0">
+            <h5 class="fw-bold text-primary mb-3"><i class="fas fa-tags me-2"></i> مواصفات الموديل والتسعير</h5>
+            
+            <div class="col-md-6"><label class="form-label fw-bold">الموديل <span class="text-danger">*</span></label><select id="modelSelect" class="form-select" required><option value="">اختر الموديل</option></select></div>
+            <div class="col-md-6"><label class="form-label fw-bold">النمرة <span class="text-danger">*</span></label><input type="text" id="size" class="form-control" required placeholder="مثال: L, XL, 42"></div>
+            <div class="col-md-4"><label class="form-label fw-bold">الوزن <small class="text-muted">(kg)</small> <span class="text-danger">*</span></label><input type="number" step="0.1" id="weight" class="form-control" required></div>
+            <div class="col-md-4"><label class="form-label fw-bold">الطول <small class="text-muted">(cm)</small> <span class="text-danger">*</span></label><input type="number" id="height" class="form-control" required></div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">السعر (شامل التوصيل) <span class="text-danger">*</span></label>
+                <div class="input-group">
+                    <input type="number" step="0.5" id="price" class="form-control fw-bold text-success fs-5" required>
+                    <span class="input-group-text bg-success text-white border-success" id="currencyLabel">JOD</span>
                 </div>
             </div>
 
+            <div class="col-12 mt-5 d-flex justify-content-between">
+                <button type="button" class="btn btn-nav btn-prev" onclick="app.changeStep(-1)"><i class="fas fa-arrow-right me-2"></i> رجوع</button>
+                <button type="button" class="btn btn-nav btn-next" onclick="app.changeStep(1)">الاعتماد النهائي <i class="fas fa-arrow-left ms-2"></i></button>
+            </div>
+        </div>
+
+        <div id="step-3" class="step-content row g-4 w-100 m-0">
+            <h5 class="fw-bold text-primary mb-3"><i class="fas fa-satellite-dish me-2"></i> مصادر الطلب والملاحظات</h5>
+            
+            <div class="col-md-6">
+                <label class="form-label text-muted fw-bold small">المدخل الحالي</label>
+                <select id="entryUserSelect" class="form-select bg-light fw-bold text-primary border-0" required></select>
+            </div>
+            <div class="col-md-6"><label class="form-label text-muted fw-bold small">تاريخ الإدخال</label><input type="text" id="entryDate" class="form-control bg-light border-0 fw-bold" readonly></div>
+            <div class="col-md-6"><label class="form-label fw-bold">اسم الصفحة (المصدر) <span class="text-danger">*</span></label><select id="pageNameSelect" class="form-select" required><option value="">اختر الصفحة</option></select></div>
+            <div class="col-md-6"><label class="form-label fw-bold">ملاحظات إضافية</label><input type="text" id="tags" class="form-control" placeholder="تغليف هدايا، مستعجل..."></div>
+            
+            <div class="col-12 mt-5 d-flex justify-content-between align-items-center">
+                <button type="button" class="btn btn-nav btn-prev" onclick="app.changeStep(-1)"><i class="fas fa-arrow-right me-2"></i> رجوع</button>
+                <button type="submit" class="btn btn-nav btn-next px-5" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);"><i class="fas fa-check-double me-2"></i> تأكيد وحفظ الطلب</button>
+            </div>
+
+            <div class="col-12 mt-3">
+                <button type="button" id="printLastOrderBtn" class="btn btn-outline-info w-100 py-3 fs-6 rounded-pill fw-bold shadow-sm" style="display:none; transition: all 0.3s;" onclick="app.printLastOrder()"><i class="fas fa-print me-2"></i> طباعة الإيصال للطلب الأخير</button>
+            </div>
+        </div>
+    </form>
+</div>
             <div id="tab-kanban" class="tab-content" style="display:none;">
                 <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded-4 shadow-sm">
                     <h4 class="fw-bold m-0"><i class="fas fa-list-ul text-primary me-2"></i> بورد الطلبات (القوائم الموسعة)</h4>
@@ -981,6 +1032,61 @@
             modalOrderId: null,
             modalOrderData: null,
             lastSavedOrderId: null,
+            currentStep: 1,
+            totalSteps: 3,
+
+            changeStep(direction) {
+                if (direction === 1) {
+                    const currentContainer = document.getElementById(`step-${this.currentStep}`);
+                    const inputs = currentContainer.querySelectorAll('input[required], select[required]');
+                    let isValid = true;
+                    inputs.forEach(input => {
+                        if (!input.checkValidity()) {
+                            input.reportValidity();
+                            input.style.boxShadow = "0 0 0 3px rgba(220, 53, 69, 0.25)";
+                            setTimeout(() => input.style.boxShadow = "", 2000);
+                            isValid = false;
+                        }
+                    });
+                    if (!isValid) return;
+                }
+
+                const prevStep = document.getElementById(`step-${this.currentStep}`);
+                const prevDot = document.getElementById(`dot-${this.currentStep}`);
+                
+                prevStep.style.opacity = '0';
+                prevStep.style.transform = direction === 1 ? 'translateX(-30px)' : 'translateX(30px)';
+                
+                setTimeout(() => {
+                    prevStep.classList.remove('active');
+                    prevDot.classList.remove('active');
+                    
+                    if (direction === 1) {
+                        prevDot.classList.add('completed');
+                        prevDot.innerHTML = '<i class="fas fa-check"></i>';
+                    } else {
+                        prevDot.classList.remove('completed');
+                        if(this.currentStep === 2) prevDot.innerHTML = '<i class="fas fa-box-open"></i>';
+                        if(this.currentStep === 3) prevDot.innerHTML = '<i class="fas fa-check-circle"></i>';
+                    }
+
+                    this.currentStep += direction;
+
+                    const progress = ((this.currentStep - 1) / (this.totalSteps - 1)) * 100;
+                    document.getElementById('progress-line').style.width = `${progress}%`;
+
+                    const newStep = document.getElementById(`step-${this.currentStep}`);
+                    const newDot = document.getElementById(`dot-${this.currentStep}`);
+                    
+                    newStep.classList.add('active');
+                    newDot.classList.add('active');
+                    
+                    void newStep.offsetWidth; 
+                    newStep.style.opacity = '1';
+                    newStep.style.transform = 'translateX(0)';
+
+                }, 300);
+            },
 
             init() {
                 this.bindLogin();
@@ -1246,11 +1352,27 @@
                 this.logAction('create', newRef.key, `إنشاء طلب للزبون: ${payload.custName}`);
                 this.notify("تم حفظ الطلبية", "success");
                 
-                ['custName', 'custAddr', 'custMob', 'size', 'weight', 'height', 'price', 'tags'].forEach(id => document.getElementById(id).value = '');
-                document.getElementById('custName').focus();
+['custName', 'custAddr', 'custMob', 'size', 'weight', 'height', 'price', 'tags'].forEach(id => document.getElementById(id).value = '');
                 
-                document.getElementById('printLastOrderBtn').style.display = 'block';
-            },
+                // تصفير الواجهة للخطوة الأولى
+                document.getElementById(`step-${this.currentStep}`).classList.remove('active');
+                document.getElementById('progress-line').style.width = '0%';
+                
+                for(let i=1; i<=3; i++) {
+                    let dot = document.getElementById(`dot-${i}`);
+                    dot.classList.remove('active', 'completed');
+                    if(i===1) dot.innerHTML = '<i class="fas fa-user"></i>';
+                    if(i===2) dot.innerHTML = '<i class="fas fa-box-open"></i>';
+                    if(i===3) dot.innerHTML = '<i class="fas fa-check-circle"></i>';
+                }
+                
+                this.currentStep = 1;
+                document.getElementById('step-1').style.opacity = '1';
+                document.getElementById('step-1').style.transform = 'translateX(0)';
+                document.getElementById('step-1').classList.add('active');
+                document.getElementById('dot-1').classList.add('active');
+
+                document.getElementById('printLastOrderBtn').style.display = 'block';            },
 
             printLastOrder() {
                 if (this.lastSavedOrderId && this.data[this.lastSavedOrderId]) {
