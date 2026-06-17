@@ -1880,46 +1880,276 @@
                 document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
             },
 
+            esc(value) {
+                return String(value ?? '-')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            },
+
+            buildOrderLabel(order, id) {
+                const refNo = id ? id.slice(-8) : '-';
+                const address = [order.country, order.governorate, order.custAddr].filter(Boolean).join(' - ');
+                const currency = order.currency || 'JOD';
+
+                return `
+                    <section class="label-page">
+                        <div class="label-card">
+                            <div class="label-top">
+                                <div class="label-ref">رقم المرجع: <strong dir="ltr">${this.esc(refNo)}</strong></div>
+                                <div class="label-meta">${this.esc(order.date || '')}</div>
+                            </div>
+
+                            <div class="label-row label-row-two">
+                                <div><span>اسم الصفحة:</span><strong>${this.esc(order.pageName || '-')}</strong></div>
+                                <div><span>المدخل:</span><strong>${this.esc(order.entryUser || '-')}</strong></div>
+                            </div>
+
+                            <div class="label-row">
+                                <span>اسم الزبون:</span>
+                                <strong>${this.esc(order.custName)}</strong>
+                            </div>
+
+                            <div class="label-row">
+                                <span>الموبايل:</span>
+                                <strong dir="ltr" class="phone-value">${this.esc(order.custMob)}</strong>
+                            </div>
+
+                            <div class="label-row address-row">
+                                <span>العنوان:</span>
+                                <strong>${this.esc(address || '-')}</strong>
+                            </div>
+
+                            <div class="label-row label-row-two">
+                                <div><span>الموديل:</span><strong>${this.esc(order.model)}</strong></div>
+                                <div><span>النمرة:</span><strong>${this.esc(order.size)}</strong></div>
+                            </div>
+
+                            <div class="label-row label-row-two">
+                                <div><span>الوزن:</span><strong>${this.esc(order.weight)} kg</strong></div>
+                                <div><span>الطول:</span><strong>${this.esc(order.height)} cm</strong></div>
+                            </div>
+
+                            <div class="label-price">
+                                <span>السعر النهائي:</span>
+                                <strong dir="ltr">${this.esc(currency)} ${this.esc(order.price)}</strong>
+                            </div>
+
+                            <div class="label-notes">
+                                <span>ملاحظات:</span>
+                                <strong>${this.esc(order.tags || 'لا يوجد')}</strong>
+                            </div>
+                        </div>
+                    </section>`;
+            },
+
+            getPrintLabelDocument(labelsHtml, title = 'طباعة طلب') {
+                return `<!doctype html>
+                <html lang="ar" dir="rtl">
+                <head>
+                    <meta charset="utf-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1">
+                    <title>${this.esc(title)}</title>
+                    <style>
+                        @page {
+                            size: 100mm 100mm;
+                            margin: 0;
+                        }
+
+                        * {
+                            box-sizing: border-box;
+                            -webkit-print-color-adjust: exact;
+                            print-color-adjust: exact;
+                        }
+
+                        html, body {
+                            width: 100mm;
+                            min-height: 100mm;
+                            margin: 0;
+                            padding: 0;
+                            background: #fff;
+                            color: #111;
+                            font-family: Arial, Tahoma, sans-serif;
+                            direction: rtl;
+                        }
+
+                        .label-page {
+                            width: 100mm;
+                            height: 100mm;
+                            margin: 0;
+                            padding: 3mm;
+                            page-break-after: always;
+                            break-after: page;
+                            display: flex;
+                        }
+
+                        .label-page:last-child {
+                            page-break-after: auto;
+                            break-after: auto;
+                        }
+
+                        .label-card {
+                            width: 100%;
+                            height: 100%;
+                            border: 1.35px solid #111;
+                            border-radius: 2.2mm;
+                            padding: 3mm 3.2mm;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 1.45mm;
+                            overflow: hidden;
+                        }
+
+                        .label-top {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            border-bottom: 1px solid #111;
+                            padding-bottom: 1.4mm;
+                            margin-bottom: .3mm;
+                            font-size: 10.5pt;
+                            line-height: 1.15;
+                        }
+
+                        .label-ref strong {
+                            font-size: 12pt;
+                            font-weight: 900;
+                        }
+
+                        .label-meta {
+                            font-size: 8.5pt;
+                            color: #333;
+                            white-space: nowrap;
+                        }
+
+                        .label-row,
+                        .label-price,
+                        .label-notes {
+                            width: 100%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            gap: 2mm;
+                            border-bottom: .75px solid #d0d0d0;
+                            padding: .85mm 0;
+                            min-height: 7mm;
+                            font-size: 10.8pt;
+                            line-height: 1.18;
+                        }
+
+                        .label-row-two {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 3mm;
+                        }
+
+                        .label-row-two > div {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            gap: 1.5mm;
+                            min-width: 0;
+                        }
+
+                        .label-row span,
+                        .label-row-two span,
+                        .label-price span,
+                        .label-notes span {
+                            font-weight: 800;
+                            white-space: nowrap;
+                            color: #111;
+                        }
+
+                        .label-row strong,
+                        .label-row-two strong,
+                        .label-notes strong {
+                            font-weight: 700;
+                            text-align: left;
+                            overflow-wrap: anywhere;
+                            min-width: 0;
+                        }
+
+                        .phone-value {
+                            font-size: 12.2pt;
+                            letter-spacing: .2px;
+                        }
+
+                        .address-row {
+                            align-items: flex-start;
+                            min-height: 12mm;
+                        }
+
+                        .address-row strong {
+                            text-align: right;
+                            font-size: 10pt;
+                            line-height: 1.22;
+                        }
+
+                        .label-price {
+                            border: 1px solid #111;
+                            border-radius: 1.5mm;
+                            padding: 1.25mm 1.8mm;
+                            margin-top: .4mm;
+                            min-height: 8.8mm;
+                            font-size: 12pt;
+                        }
+
+                        .label-price strong {
+                            font-size: 17pt;
+                            font-weight: 900;
+                            letter-spacing: .2px;
+                        }
+
+                        .label-notes {
+                            border-bottom: 0;
+                            flex: 1;
+                            align-items: flex-start;
+                            font-size: 10.5pt;
+                            padding-top: .8mm;
+                        }
+
+                        @media screen {
+                            body {
+                                background: #f3f4f6;
+                            }
+                            .label-page {
+                                background: #fff;
+                                box-shadow: 0 8px 24px rgba(0,0,0,.14);
+                                margin: 16px auto;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>${labelsHtml}</body>
+                </html>`;
+            },
+
             executeBulkPrint(idsArray) {
                 const win = window.open('', '_blank');
-                let html = `<html><head><title>طباعة طلبات متعددة</title><style>
-                    body { font-family: 'Tahoma', Arial; padding: 2rem; direction: rtl; }
-                    .order-box { border: 2px solid #000; padding: 20px; margin-bottom: 30px; border-radius: 10px; page-break-inside: avoid; }
-                    table { width: 100%; text-align: right; margin-top:10px; font-size: 18px; }
-                    th { padding: 8px; width: 20%; border-bottom: 1px solid #ddd; }
-                    td { padding: 8px; border-bottom: 1px solid #ddd; }
-                    h2 { text-align: center; margin-bottom: 30px; }
-                </style></head><body>
-                <h2>كشف طلبات الطباعة (${idsArray.length} طلب)</h2>`;
-                
+                if (!win) {
+                    this.notify('المتصفح منع نافذة الطباعة. اسمح بالنوافذ المنبثقة ثم أعد المحاولة.', 'error');
+                    return;
+                }
+
+                const labelsHtml = idsArray
+                    .map(id => this.data[id] ? this.buildOrderLabel(this.data[id], id) : '')
+                    .join('');
+
                 const updates = {};
                 idsArray.forEach(id => {
-                    const o = this.data[id];
-                    if(o) {
-                        html += `
-                        <div class="order-box">
-                            <h3>رقم المرجع: ${id.slice(-8)}</h3>
-                          <table cellspacing="0">
-    <tr><th>اسم الصفحة:</th><td>${o.pageName || '-'}</td><th>المدخل:</th><td>${o.entryUser || '-'}</td></tr>
-    <tr><th>اسم الزبون:</th><td colspan="3"><strong>${o.custName}</strong></td></tr>
-    <tr><th>الموبايل:</th><td dir="ltr" colspan="3"><strong>${o.custMob}</strong></td></tr>
-    <tr><th>العنوان:</th><td colspan="3">${o.country || ''} - ${o.governorate || ''} - ${o.custAddr}</td></tr>
-    <tr><th>الموديل:</th><td>${o.model}</td><th>النمرة:</th><td>${o.size}</td></tr>
-    <tr><th>الوزن:</th><td>${o.weight} kg</td><th>الطول:</th><td>${o.height} cm</td></tr>
-    <tr><th>السعر النهائي:</th><td colspan="3" style="font-weight:bold; font-size:22px;">${o.price} ${o.currency || 'JOD'}</td></tr>
-    <tr><th>ملاحظات:</th><td colspan="3">${o.tags || 'لا يوجد'}</td></tr>
-</table>
-                        </div>`;
-                        updates[`orders/${id}/status`] = 'done';
-                    }
+                    if(this.data[id]) updates[`orders/${id}/status`] = 'done';
                 });
-                html += `</body></html>`;
-                win.document.write(html);
+
+                win.document.write(this.getPrintLabelDocument(labelsHtml, `طباعة ${idsArray.length} طلب`));
                 win.document.close();
+
                 setTimeout(() => {
+                    win.focus();
                     win.print();
                     update(ref(db), updates).then(() => {
-                        this.notify('تمت الطباعة وتحويل الحالات إلى جاهزة التسليم', 'success');
+                        this.notify('تمت الطباعة بحجم 10×10 سم وتحويل الحالات إلى جاهزة التسليم', 'success');
                     });
                 }, 500);
             },
@@ -2076,26 +2306,17 @@
 
             printOrder(order, id) {
                 const win = window.open('', '_blank');
-                win.document.write(`<html><head><title>طباعة طلب</title><style>
-                    body{font-family:Arial;padding:2rem; direction:rtl;}
-                    table { width: 100%; border-collapse: collapse; margin-top:20px; font-size: 18px; }
-                    th, td { border: 1px solid #000; padding: 12px; text-align: right;}
-                    th { background-color: #f8f9fa; width: 30%; }
-                </style></head><body>
-                <h2 style="text-align:center; margin-bottom:30px;">تفاصيل الطلب - ${id.slice(-8)}</h2>
-                <table>
-                    <tr><th>اسم الزبون</th><td>${order.custName}</td></tr>
-                    <tr><th>الموبايل</th><td dir="ltr">${order.custMob}</td></tr>
-                    <tr><th>الدولة والمحافظة</th><td>${order.country || ''} - ${order.governorate || ''}</td></tr>
-                    <tr><th>العنوان</th><td>${order.custAddr}</td></tr>
-                    <tr><th>الموديل والنمرة</th><td>${order.model} - ${order.size}</td></tr>
-                    <tr><th>الوزن والطول</th><td>${order.weight}kg / ${order.height}cm</td></tr>
-                    <tr><th>سعر شامل التوصيل</th><td style="font-weight:bold; font-size:24px">${order.price} ${order.currency || 'JOD'}</td></tr>
-                    <tr><th> (الملاحظات)</th><td>${order.tags || 'لا يوجد'}</td></tr>
-                </table>
-                </body></html>`);
+                if (!win) {
+                    this.notify('المتصفح منع نافذة الطباعة. اسمح بالنوافذ المنبثقة ثم أعد المحاولة.', 'error');
+                    return;
+                }
+
+                const labelsHtml = this.buildOrderLabel(order, id);
+                win.document.write(this.getPrintLabelDocument(labelsHtml, 'طباعة طلب'));
                 win.document.close();
+
                 setTimeout(() => {
+                    win.focus();
                     win.print();
                     if(id) this.moveOrderStage(id, 'done');
                 }, 500);
