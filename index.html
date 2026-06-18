@@ -6,7 +6,18 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>DARZA PRO - Enterprise Order Management V3.1.2</title>
+    <script>
+        (() => {
+            const APP_VERSION = `3.0.1-print-font-only`;
+            window.DARZA_APP_VERSION = APP_VERSION;
+            const url = new URL(window.location.href);
+            if (url.searchParams.get(`v`) !== APP_VERSION) {
+                url.searchParams.set(`v`, APP_VERSION);
+                window.location.replace(url.toString());
+            }
+        })();
+    </script>
+    <title>DARZA PRO - Enterprise Order Management V3.0.1</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -521,7 +532,7 @@
             <div class="mb-4">
                 <i class="fas fa-gem fa-3x text-primary mb-3"></i>
                 <h2 style="color: var(--primary); font-weight: 800;">DARZA PRO</h2>
-                <span class="badge bg-dark rounded-pill">Enterprise Edition v3.1.2</span>
+                <span class="badge bg-dark rounded-pill">Enterprise Edition v3.0.1</span>
             </div>
             <form id="loginForm">
                 <div class="input-group mb-3 shadow-sm" style="border-radius: 12px; overflow: hidden;">
@@ -1207,20 +1218,6 @@
         const pageDefRef = ref(db, 'definitions/pages');
         const modelDefRef = ref(db, 'definitions/models');
         const userDefRef = ref(db, 'definitions/entryUsers');
-        const DARZA_APP_VERSION = '3.1.3-print-10x10-exact';
-        window.DARZA_APP_VERSION = DARZA_APP_VERSION;
-        try {
-            const storedAppVersion = localStorage.getItem('darzaAppVersion');
-            const currentUrl = new URL(window.location.href);
-            const versionInUrl = currentUrl.searchParams.get('v');
-            if (versionInUrl !== DARZA_APP_VERSION || storedAppVersion !== DARZA_APP_VERSION) {
-                localStorage.setItem('darzaAppVersion', DARZA_APP_VERSION);
-                currentUrl.searchParams.set('v', DARZA_APP_VERSION);
-                window.location.replace(currentUrl.toString());
-            }
-        } catch (e) {
-            console.warn('Version refresh check skipped', e);
-        }
 
         const USERS_DB = {
             'admin': { pass: '2026', role: 'Admin', name: 'المدير العام' },
@@ -1897,360 +1894,46 @@
                 document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
             },
 
-            esc(value) {
-                return String(value ?? '-')
-                    .replace(/&/g, '&amp;')
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;')
-                    .replace(/"/g, '&quot;')
-                    .replace(/'/g, '&#039;');
-            },
-
-            buildOrderLabel(order, id) {
-                const refNo = id ? id.slice(-8) : '-';
-                const address = [order.country, order.governorate, order.custAddr].filter(Boolean).join(' - ');
-                const currency = order.currency || 'JOD';
-
-                return `
-                    <section class="label-page" aria-label="Order label">
-                        <div class="label-card">
-                            <header class="label-header">
-                                <div>رقم المرجع: <strong dir="ltr">${this.esc(refNo)}</strong></div>
-                                <div class="label-date" dir="ltr">${this.esc(order.date || '')}</div>
-                            </header>
-
-                            <div class="label-grid two-cols compact-row">
-                                <div><span>اسم الصفحة:</span><strong>${this.esc(order.pageName || '-')}</strong></div>
-                                <div><span>المدخل:</span><strong>${this.esc(order.entryUser || '-')}</strong></div>
-                            </div>
-
-                            <div class="label-line big-line">
-                                <span>اسم الزبون:</span>
-                                <strong>${this.esc(order.custName)}</strong>
-                            </div>
-
-                            <div class="label-line big-line">
-                                <span>الموبايل:</span>
-                                <strong dir="ltr" class="phone-value">${this.esc(order.custMob)}</strong>
-                            </div>
-
-                            <div class="label-line address-line">
-                                <span>العنوان:</span>
-                                <strong>${this.esc(address || '-')}</strong>
-                            </div>
-
-                            <div class="label-grid two-cols">
-                                <div><span>الموديل:</span><strong>${this.esc(order.model)}</strong></div>
-                                <div><span>النمرة:</span><strong>${this.esc(order.size)}</strong></div>
-                            </div>
-
-                            <div class="label-grid two-cols">
-                                <div><span>الوزن:</span><strong>${this.esc(order.weight)} kg</strong></div>
-                                <div><span>الطول:</span><strong>${this.esc(order.height)} cm</strong></div>
-                            </div>
-
-                            <div class="label-price">
-                                <span>السعر النهائي:</span>
-                                <strong dir="ltr">${this.esc(currency)} ${this.esc(order.price)}</strong>
-                            </div>
-
-                            <div class="label-notes">
-                                <span>ملاحظات:</span>
-                                <strong>${this.esc(order.tags || 'لا يوجد')}</strong>
-                            </div>
-                        </div>
-                    </section>`;
-            },
-
-            getPrintLabelDocument(labelsHtml, title = 'طباعة طلب') {
-                return `<!doctype html>
-                <html lang="ar" dir="rtl">
-                <head>
-                    <meta charset="utf-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1">
-                    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
-                    <title>&#8203;</title>
-                    <style>
-                        @page {
-                            size: 100mm 100mm;
-                            margin: 0 !important;
-                        }
-
-                        * {
-                            box-sizing: border-box !important;
-                            -webkit-print-color-adjust: exact !important;
-                            print-color-adjust: exact !important;
-                        }
-
-                        html,
-                        body {
-                            width: 100mm !important;
-                            height: auto !important;
-                            min-width: 100mm !important;
-                            max-width: 100mm !important;
-                            margin: 0 !important;
-                            padding: 0 !important;
-                            border: 0 !important;
-                            background: #fff !important;
-                            color: #000 !important;
-                            font-family: Arial, Tahoma, sans-serif !important;
-                            direction: rtl !important;
-                            overflow: visible !important;
-                        }
-
-                        body {
-                            position: static !important;
-                            display: block !important;
-                        }
-
-                        .label-page {
-                            position: relative !important;
-                            inset: auto !important;
-                            left: 0 !important;
-                            right: auto !important;
-                            top: 0 !important;
-                            width: 100mm !important;
-                            min-width: 100mm !important;
-                            max-width: 100mm !important;
-                            height: 100mm !important;
-                            min-height: 100mm !important;
-                            max-height: 100mm !important;
-                            margin: 0 !important;
-                            padding: 2mm !important;
-                            border: 0 !important;
-                            display: flex !important;
-                            align-items: stretch !important;
-                            justify-content: stretch !important;
-                            overflow: hidden !important;
-                            background: #fff !important;
-                            page-break-before: auto !important;
-                            page-break-after: always !important;
-                            break-after: page !important;
-                            page-break-inside: avoid !important;
-                            break-inside: avoid !important;
-                        }
-
-                        .label-page:last-child {
-                            page-break-after: auto !important;
-                            break-after: auto !important;
-                        }
-
-                        .label-card {
-                            width: 96mm !important;
-                            height: 96mm !important;
-                            margin: 0 !important;
-                            border: 1.45px solid #000 !important;
-                            border-radius: 2mm !important;
-                            padding: 2.2mm 2.6mm !important;
-                            display: grid !important;
-                            grid-template-rows: auto auto auto auto 1fr auto auto auto auto !important;
-                            gap: 1.15mm !important;
-                            overflow: hidden !important;
-                            background: #fff !important;
-                        }
-
-                        .label-header {
-                            display: flex !important;
-                            justify-content: space-between !important;
-                            align-items: center !important;
-                            gap: 2mm !important;
-                            padding-bottom: 1.15mm !important;
-                            border-bottom: 1.15px solid #000 !important;
-                            font-size: 12.2pt !important;
-                            line-height: 1.08 !important;
-                            font-weight: 900 !important;
-                        }
-
-                        .label-header strong {
-                            font-size: 13.8pt !important;
-                            font-weight: 900 !important;
-                        }
-
-                        .label-date {
-                            font-size: 9.5pt !important;
-                            font-weight: 800 !important;
-                            white-space: nowrap !important;
-                            color: #000 !important;
-                        }
-
-                        .label-line,
-                        .label-grid,
-                        .label-price,
-                        .label-notes {
-                            width: 100% !important;
-                            border-bottom: .85px solid #bdbdbd !important;
-                            font-size: 12.6pt !important;
-                            line-height: 1.1 !important;
-                        }
-
-                        .label-line,
-                        .label-price,
-                        .label-notes {
-                            display: flex !important;
-                            align-items: center !important;
-                            justify-content: space-between !important;
-                            gap: 2mm !important;
-                            padding: .8mm 0 !important;
-                            min-height: 7.3mm !important;
-                        }
-
-                        .big-line {
-                            font-size: 13.4pt !important;
-                            min-height: 8.1mm !important;
-                        }
-
-                        .label-grid {
-                            display: grid !important;
-                            grid-template-columns: 1fr 1fr !important;
-                            gap: 2.6mm !important;
-                            padding: .8mm 0 !important;
-                            min-height: 7.2mm !important;
-                        }
-
-                        .label-grid > div {
-                            display: flex !important;
-                            align-items: center !important;
-                            justify-content: space-between !important;
-                            gap: 1.4mm !important;
-                            min-width: 0 !important;
-                        }
-
-                        .compact-row {
-                            font-size: 11.2pt !important;
-                            min-height: 6.7mm !important;
-                        }
-
-                        .label-line span,
-                        .label-grid span,
-                        .label-price span,
-                        .label-notes span {
-                            font-weight: 900 !important;
-                            white-space: nowrap !important;
-                            color: #000 !important;
-                        }
-
-                        .label-line strong,
-                        .label-grid strong,
-                        .label-notes strong {
-                            font-weight: 850 !important;
-                            overflow-wrap: anywhere !important;
-                            min-width: 0 !important;
-                            text-align: left !important;
-                            color: #000 !important;
-                        }
-
-                        .phone-value {
-                            font-size: 14.7pt !important;
-                            font-weight: 900 !important;
-                            letter-spacing: .2px !important;
-                        }
-
-                        .address-line {
-                            align-items: flex-start !important;
-                            min-height: 14.5mm !important;
-                            padding-top: .9mm !important;
-                        }
-
-                        .address-line strong {
-                            text-align: right !important;
-                            font-size: 11.8pt !important;
-                            line-height: 1.16 !important;
-                            display: -webkit-box !important;
-                            -webkit-line-clamp: 3 !important;
-                            -webkit-box-orient: vertical !important;
-                            overflow: hidden !important;
-                        }
-
-                        .label-price {
-                            border: 1.35px solid #000 !important;
-                            border-radius: 1.5mm !important;
-                            padding: 1.1mm 1.8mm !important;
-                            min-height: 9.6mm !important;
-                            font-size: 13.4pt !important;
-                        }
-
-                        .label-price strong {
-                            font-size: 19.5pt !important;
-                            font-weight: 900 !important;
-                            color: #000 !important;
-                        }
-
-                        .label-notes {
-                            border-bottom: 0 !important;
-                            align-items: flex-start !important;
-                            min-height: 7.4mm !important;
-                            font-size: 12pt !important;
-                            padding-top: .6mm !important;
-                        }
-
-                        @media print {
-                            html,
-                            body {
-                                width: 100mm !important;
-                                min-width: 100mm !important;
-                                max-width: 100mm !important;
-                                margin: 0 !important;
-                                padding: 0 !important;
-                                overflow: visible !important;
-                            }
-
-                            .label-page {
-                                width: 100mm !important;
-                                height: 100mm !important;
-                                margin: 0 !important;
-                                padding: 2mm !important;
-                            }
-                        }
-
-                        @media screen {
-                            html,
-                            body {
-                                min-height: 100%;
-                                background: #eef2f5 !important;
-                            }
-
-                            .label-page {
-                                background: #fff !important;
-                                box-shadow: 0 8px 24px rgba(0,0,0,.14) !important;
-                                margin: 12px auto !important;
-                            }
-                        }
-                    </style>
-                    <script>
-                        document.title = '\u200B';
-                        try { history.replaceState(null, '\u200B', location.href.split('#')[0]); } catch (e) {}
-                        window.addEventListener('beforeprint', function () { document.title = '\u200B'; });
-                        window.addEventListener('afterprint', function () { document.title = '\u200B'; });
-                    <\/script>
-                </head>
-                <body>${labelsHtml}</body>
-                </html>`;
-            },
-
             executeBulkPrint(idsArray) {
                 const win = window.open('', '_blank');
-                if (!win) {
-                    this.notify('المتصفح منع نافذة الطباعة. اسمح بالنوافذ المنبثقة ثم أعد المحاولة.', 'error');
-                    return;
-                }
-
-                const labelsHtml = idsArray
-                    .map(id => this.data[id] ? this.buildOrderLabel(this.data[id], id) : '')
-                    .join('');
-
+                let html = `<html><head><title>طباعة طلبات متعددة</title><style>
+                    body { font-family: 'Tahoma', Arial; padding: 2rem; direction: rtl; font-size: 22px; line-height: 1.55; }
+                    .order-box { border: 2px solid #000; padding: 20px; margin-bottom: 30px; border-radius: 10px; page-break-inside: avoid; }
+                    table { width: 100%; text-align: right; margin-top:10px; font-size: 22px; line-height: 1.55; }
+                    th { padding: 10px 8px; width: 20%; border-bottom: 1px solid #ddd; font-weight: 800; white-space: nowrap; }
+                    td { padding: 10px 8px; border-bottom: 1px solid #ddd; font-weight: 700; }
+                    h2 { text-align: center; margin-bottom: 30px; font-size: 24px; } h3 { font-size: 24px; font-weight: 800; margin: 0 0 12px; }
+                </style></head><body>
+                <h2>كشف طلبات الطباعة (${idsArray.length} طلب)</h2>`;
+                
                 const updates = {};
                 idsArray.forEach(id => {
-                    if(this.data[id]) updates[`orders/${id}/status`] = 'done';
+                    const o = this.data[id];
+                    if(o) {
+                        html += `
+                        <div class="order-box">
+                            <h3>رقم المرجع: ${id.slice(-8)}</h3>
+                          <table cellspacing="0">
+    <tr><th>اسم الصفحة:</th><td>${o.pageName || '-'}</td><th>المدخل:</th><td>${o.entryUser || '-'}</td></tr>
+    <tr><th>اسم الزبون:</th><td colspan="3"><strong>${o.custName}</strong></td></tr>
+    <tr><th>الموبايل:</th><td dir="ltr" colspan="3"><strong>${o.custMob}</strong></td></tr>
+    <tr><th>العنوان:</th><td colspan="3">${o.country || ''} - ${o.governorate || ''} - ${o.custAddr}</td></tr>
+    <tr><th>الموديل:</th><td>${o.model}</td><th>النمرة:</th><td>${o.size}</td></tr>
+    <tr><th>الوزن:</th><td>${o.weight} kg</td><th>الطول:</th><td>${o.height} cm</td></tr>
+    <tr><th>السعر النهائي:</th><td colspan="3" style="font-weight:bold; font-size:30px;">${o.price} ${o.currency || 'JOD'}</td></tr>
+    <tr><th>ملاحظات:</th><td colspan="3">${o.tags || 'لا يوجد'}</td></tr>
+</table>
+                        </div>`;
+                        updates[`orders/${id}/status`] = 'done';
+                    }
                 });
-
-                win.document.write(this.getPrintLabelDocument(labelsHtml, `طباعة ${idsArray.length} طلب`));
+                html += `</body></html>`;
+                win.document.write(html);
                 win.document.close();
-
                 setTimeout(() => {
-                    win.focus();
                     win.print();
                     update(ref(db), updates).then(() => {
-                        this.notify('تمت الطباعة بإعداد 10×10 سم وتحويل الحالات إلى جاهزة التسليم', 'success');
+                        this.notify('تمت الطباعة وتحويل الحالات إلى جاهزة التسليم', 'success');
                     });
                 }, 500);
             },
@@ -2407,17 +2090,26 @@
 
             printOrder(order, id) {
                 const win = window.open('', '_blank');
-                if (!win) {
-                    this.notify('المتصفح منع نافذة الطباعة. اسمح بالنوافذ المنبثقة ثم أعد المحاولة.', 'error');
-                    return;
-                }
-
-                const labelsHtml = this.buildOrderLabel(order, id);
-                win.document.write(this.getPrintLabelDocument(labelsHtml, 'طباعة طلب'));
+                win.document.write(`<html><head><title>طباعة طلب</title><style>
+                    body{font-family:Arial;padding:2rem; direction:rtl; font-size:22px; line-height:1.55;}
+                    table { width: 100%; border-collapse: collapse; margin-top:20px; font-size: 24px; line-height:1.55; }
+                    th, td { border: 1px solid #000; padding: 14px 12px; text-align: right; font-weight:700;}
+                    th { background-color: #f8f9fa; width: 30%; font-weight:800; white-space:nowrap; }
+                </style></head><body>
+                <h2 style="text-align:center; margin-bottom:30px; font-size:28px;">تفاصيل الطلب - ${id.slice(-8)}</h2>
+                <table>
+                    <tr><th>اسم الزبون</th><td>${order.custName}</td></tr>
+                    <tr><th>الموبايل</th><td dir="ltr">${order.custMob}</td></tr>
+                    <tr><th>الدولة والمحافظة</th><td>${order.country || ''} - ${order.governorate || ''}</td></tr>
+                    <tr><th>العنوان</th><td>${order.custAddr}</td></tr>
+                    <tr><th>الموديل والنمرة</th><td>${order.model} - ${order.size}</td></tr>
+                    <tr><th>الوزن والطول</th><td>${order.weight}kg / ${order.height}cm</td></tr>
+                    <tr><th>سعر شامل التوصيل</th><td style="font-weight:bold; font-size:32px">${order.price} ${order.currency || 'JOD'}</td></tr>
+                    <tr><th> (الملاحظات)</th><td>${order.tags || 'لا يوجد'}</td></tr>
+                </table>
+                </body></html>`);
                 win.document.close();
-
                 setTimeout(() => {
-                    win.focus();
                     win.print();
                     if(id) this.moveOrderStage(id, 'done');
                 }, 500);
