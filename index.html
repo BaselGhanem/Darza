@@ -8,7 +8,7 @@
     <meta http-equiv="Expires" content="0">
     <script>
         (() => {
-            const APP_VERSION = `3.0.1-print-font-only`;
+            const APP_VERSION = `3.0.2-pdf-country-phone`;
             window.DARZA_APP_VERSION = APP_VERSION;
             const url = new URL(window.location.href);
             if (url.searchParams.get(`v`) !== APP_VERSION) {
@@ -17,7 +17,7 @@
             }
         })();
     </script>
-    <title>DARZA PRO - Enterprise Order Management V3.0.1</title>
+    <title>DARZA PRO - Enterprise Order Management V3.0.2</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -398,6 +398,53 @@
         ::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.4); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
+
+
+        /* Reports export actions */
+        .report-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-pdf {
+            background: linear-gradient(135deg, #2b2d42 0%, #099999 100%);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 0.65rem 1.25rem;
+            font-weight: 800;
+            box-shadow: 0 8px 18px rgba(9, 153, 153, 0.18);
+            transition: var(--transition);
+        }
+        .btn-pdf:hover {
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(9, 153, 153, 0.28);
+        }
+
+        /* Force international phone layout: country code left, number right */
+        .phone-input-ltr {
+            direction: ltr !important;
+            display: flex;
+            flex-direction: row !important;
+        }
+        .phone-input-ltr .input-group-text {
+            order: 0;
+            border-radius: 12px 0 0 12px !important;
+            border-left: 1px solid var(--glass-border) !important;
+            border-right: 0 !important;
+            min-width: 76px;
+            justify-content: center;
+        }
+        .phone-input-ltr .form-control {
+            order: 1;
+            text-align: left !important;
+            direction: ltr !important;
+            border-radius: 0 12px 12px 0 !important;
+        }
+
         /* Mobile adjustments */
         @media (max-width: 768px) {
             .kpi-value { font-size: 1.5rem; }
@@ -532,7 +579,7 @@
             <div class="mb-4">
                 <i class="fas fa-gem fa-3x text-primary mb-3"></i>
                 <h2 style="color: var(--primary); font-weight: 800;">DARZA PRO</h2>
-                <span class="badge bg-dark rounded-pill">Enterprise Edition v3.0.1</span>
+                <span class="badge bg-dark rounded-pill">Enterprise Edition v3.0.2</span>
             </div>
             <form id="loginForm">
                 <div class="input-group mb-3 shadow-sm" style="border-radius: 12px; overflow: hidden;">
@@ -687,9 +734,9 @@
                             
                             <div class="col-md-4">
                                 <label class="form-label fw-bold">الموبايل <span class="text-danger">*</span></label>
-                                <div class="input-group">
+                                <div class="input-group phone-input-ltr">
                                     <span class="input-group-text fw-bold" style="background:var(--bg-color)" id="phonePrefix" dir="ltr">+962</span>
-                                    <input type="text" id="custMob" class="form-control" placeholder="مثال: 79 123 4567" required dir="ltr">
+                                    <input type="text" id="custMob" class="form-control" placeholder="798054014" required dir="ltr" inputmode="numeric" autocomplete="tel-national">
                                 </div>
                                 <div id="duplicateWarning" class="alert alert-warning mt-2 py-2 small shadow-sm rounded-3" style="display:none; border-right: 4px solid #ffc107;">
                                     <i class="fas fa-exclamation-triangle me-1"></i> <span id="dupMsg"></span>
@@ -699,8 +746,16 @@
                             <div class="col-md-4">
                                 <label class="form-label fw-bold">الدولة <span class="text-danger">*</span></label>
                                 <select id="countrySelect" class="form-select" required onchange="app.updateCountry()">
-                                    <option value="Jordan" selected>الأردن</option>
-                                    <option value="Palestine">فلسطين</option>
+                                    <option value="Jordan" selected>🇯🇴 الأردن</option>
+                                    <option value="Palestine">🇵🇸 فلسطين</option>
+                                    <option value="Saudi Arabia">🇸🇦 السعودية</option>
+                                    <option value="United Arab Emirates">🇦🇪 الإمارات</option>
+                                    <option value="Kuwait">🇰🇼 الكويت</option>
+                                    <option value="Qatar">🇶🇦 قطر</option>
+                                    <option value="Bahrain">🇧🇭 البحرين</option>
+                                    <option value="Oman">🇴🇲 عُمان</option>
+                                    <option value="Iraq">🇮🇶 العراق</option>
+                                    <option value="Egypt">🇪🇬 مصر</option>
                                 </select>
                             </div>
                             
@@ -919,9 +974,12 @@
 
             <div id="tab-reports" class="tab-content" style="display:none;">
                 <div class="card p-4 mb-4 shadow-sm border-0">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
                         <h5 class="fw-bold text-secondary m-0"><i class="fas fa-filter text-primary me-2"></i> محرك البحث والفلاتر</h5>
-                        <button class="btn btn-success rounded-pill px-4" onclick="app.exportExcel()"><i class="fas fa-file-excel me-2"></i> تصدير Excel</button>
+                        <div class="report-actions">
+                            <button class="btn btn-success rounded-pill px-4" onclick="app.exportExcel()"><i class="fas fa-file-excel me-2"></i> تصدير Excel</button>
+                            <button class="btn btn-pdf px-4" onclick="app.downloadPdfReport()"><i class="fas fa-file-pdf me-2"></i> تنزيل PDF</button>
+                        </div>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-3"><label class="form-label small fw-bold">بحث شامل</label><input type="text" id="filterGeneral" class="form-control" placeholder="اسم، موبايل، عنوان..."></div>
@@ -937,6 +995,10 @@
                                 <option value="canceled">ملغي</option>
                                 <option value="stored">مخزن</option>
                             </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold">الدولة</label>
+                            <select id="filterCountry" class="form-select"><option value="">🌍 الكل</option></select>
                         </div>
                         <div class="col-md-2"><label class="form-label small fw-bold">المدخل</label><select id="filterUser" class="form-select"><option value="">الكل</option></select></div>
                         <div class="col-md-2"><label class="form-label small fw-bold">الموديل</label><select id="filterModel" class="form-select"><option value="">الكل</option></select></div>
@@ -1228,7 +1290,28 @@
 
         const GOV_DATA = {
             'Jordan': ['العاصمة (عمّان)', 'إربد', 'الزرقاء', 'المفرق', 'البلقاء', 'الكرك', 'الطفيلة', 'معان', 'العقبة', 'جرش', 'عجلون', 'مادبا'],
-            'Palestine': ['القدس', 'رام الله والبيرة', 'الخليل', 'نابلس', 'جنين', 'طولكرم', 'قلقيلية', 'بيت لحم', 'سلفيت', 'طوباس', 'أريحا والأغوار', 'غزة', 'شمال غزة', 'دير البلح', 'خان يونس', 'رفح']
+            'Palestine': ['القدس', 'رام الله والبيرة', 'الخليل', 'نابلس', 'جنين', 'طولكرم', 'قلقيلية', 'بيت لحم', 'سلفيت', 'طوباس', 'أريحا والأغوار', 'غزة', 'شمال غزة', 'دير البلح', 'خان يونس', 'رفح'],
+            'Saudi Arabia': ['الرياض', 'مكة المكرمة', 'المدينة المنورة', 'القصيم', 'الشرقية', 'عسير', 'تبوك', 'حائل', 'الحدود الشمالية', 'جازان', 'نجران', 'الباحة', 'الجوف'],
+            'United Arab Emirates': ['أبوظبي', 'دبي', 'الشارقة', 'عجمان', 'أم القيوين', 'رأس الخيمة', 'الفجيرة'],
+            'Kuwait': ['العاصمة', 'حولي', 'الفروانية', 'مبارك الكبير', 'الأحمدي', 'الجهراء'],
+            'Qatar': ['الدوحة', 'الريان', 'الوكرة', 'الخور والذخيرة', 'الشمال', 'أم صلال', 'الشيحانية'],
+            'Bahrain': ['العاصمة', 'المحرق', 'الشمالية', 'الجنوبية'],
+            'Oman': ['مسقط', 'ظفار', 'مسندم', 'البريمي', 'الداخلية', 'شمال الباطنة', 'جنوب الباطنة', 'جنوب الشرقية', 'شمال الشرقية', 'الظاهرة', 'الوسطى'],
+            'Iraq': ['بغداد', 'البصرة', 'نينوى', 'أربيل', 'النجف', 'كربلاء', 'السليمانية', 'دهوك', 'كركوك', 'ديالى', 'الأنبار', 'ذي قار', 'ميسان', 'واسط', 'المثنى', 'القادسية', 'بابل', 'صلاح الدين'],
+            'Egypt': ['القاهرة', 'الجيزة', 'الإسكندرية', 'الدقهلية', 'البحر الأحمر', 'البحيرة', 'الفيوم', 'الغربية', 'الإسماعيلية', 'المنوفية', 'المنيا', 'القليوبية', 'الوادي الجديد', 'السويس', 'أسوان', 'أسيوط', 'بني سويف', 'بورسعيد', 'دمياط', 'الشرقية', 'جنوب سيناء', 'كفر الشيخ', 'مطروح', 'الأقصر', 'قنا', 'شمال سيناء', 'سوهاج']
+        };
+
+        const COUNTRY_META = {
+            'Jordan': { ar: 'الأردن', flag: '🇯🇴', dial: '+962', currency: 'JOD' },
+            'Palestine': { ar: 'فلسطين', flag: '🇵🇸', dial: '+970', currency: 'ILS' },
+            'Saudi Arabia': { ar: 'السعودية', flag: '🇸🇦', dial: '+966', currency: 'SAR' },
+            'United Arab Emirates': { ar: 'الإمارات', flag: '🇦🇪', dial: '+971', currency: 'AED' },
+            'Kuwait': { ar: 'الكويت', flag: '🇰🇼', dial: '+965', currency: 'KWD' },
+            'Qatar': { ar: 'قطر', flag: '🇶🇦', dial: '+974', currency: 'QAR' },
+            'Bahrain': { ar: 'البحرين', flag: '🇧🇭', dial: '+973', currency: 'BHD' },
+            'Oman': { ar: 'عُمان', flag: '🇴🇲', dial: '+968', currency: 'OMR' },
+            'Iraq': { ar: 'العراق', flag: '🇮🇶', dial: '+964', currency: 'IQD' },
+            'Egypt': { ar: 'مصر', flag: '🇪🇬', dial: '+20', currency: 'EGP' }
         };
 
         const statusMapAr = { new: 'جديدة', process: 'تحضير', done: 'جاهزة', delivered: 'مسلمة', postponed: 'مؤجل', canceled: 'ملغي', stored: 'مخزن' };
@@ -1314,7 +1397,7 @@
                 this.setupKeyboardShortcuts();
                 document.getElementById('orderForm').addEventListener('submit', this.saveOrder.bind(this));
                 
-                ['filterGeneral', 'filterStatus', 'filterUser', 'filterModel', 'filterDateFrom', 'filterDateTo'].forEach(id => {
+                ['filterGeneral', 'filterStatus', 'filterCountry', 'filterUser', 'filterModel', 'filterDateFrom', 'filterDateTo'].forEach(id => {
                     document.getElementById(id)?.addEventListener('input', () => {
                         this.renderTable();
                         this.updateStageCards();
@@ -1348,6 +1431,7 @@
                 }
                 
                 document.getElementById('entryDate').value = new Date().toLocaleDateString('en-GB');
+                this.populateCountryFilters();
                 this.updateCountry(); 
                 this.loadDefinitions();
             },
@@ -1395,22 +1479,31 @@
                 });
             },
 
+            populateCountryFilters() {
+                const filterCountry = document.getElementById('filterCountry');
+                if (!filterCountry) return;
+                filterCountry.innerHTML = '<option value="">🌍 الكل</option>' + Object.entries(COUNTRY_META)
+                    .map(([code, meta]) => `<option value="${code}">${meta.flag} ${meta.ar}</option>`)
+                    .join('');
+            },
+
             updateCountry() {
                 const country = document.getElementById('countrySelect').value;
                 const govSelect = document.getElementById('governorateSelect');
                 const phonePrefix = document.getElementById('phonePrefix');
                 const currencyLabel = document.getElementById('currencyLabel');
+                const meta = COUNTRY_META[country] || COUNTRY_META['Jordan'];
+                const governorates = GOV_DATA[country] || [];
 
-                govSelect.innerHTML = GOV_DATA[country].map(g => `<option value="${g}">${g}</option>`).join('');
-                
-                if (country === 'Jordan') {
-                    phonePrefix.innerText = '+962';
-                    currencyLabel.innerText = 'JOD';
-                } else {
-                    phonePrefix.innerText = '+970';
-                    currencyLabel.innerText = 'ILS';
+                govSelect.innerHTML = governorates.map(g => `<option value="${g}">${g}</option>`).join('');
+                phonePrefix.innerText = meta.dial;
+                currencyLabel.innerText = meta.currency;
+
+                const mob = document.getElementById('custMob');
+                if (mob) {
+                    mob.placeholder = `${meta.dial.replace('+', '')} رقم الموبايل بدون المفتاح`;
+                    mob.dispatchEvent(new Event('input'));
                 }
-                document.getElementById('custMob').dispatchEvent(new Event('input'));
             },
 
             bindLogin() {
@@ -2118,6 +2211,7 @@
             getFilteredData() {
                 const gen = document.getElementById('filterGeneral')?.value.toLowerCase() || '';
                 const stat = document.getElementById('filterStatus')?.value || '';
+                const countryF = document.getElementById('filterCountry')?.value || '';
                 const usr = document.getElementById('filterUser')?.value || '';
                 const modelF = document.getElementById('filterModel')?.value || '';
                 const from = document.getElementById('filterDateFrom')?.value;
@@ -2126,6 +2220,7 @@
                 return Object.entries(this.data).filter(([id, o]) => {
                     if (gen && !JSON.stringify(o).toLowerCase().includes(gen)) return false;
                     if (stat && o.status !== stat) return false;
+                    if (countryF && o.country !== countryF) return false;
                     if (usr && o.entryUser !== usr) return false;
                     if (modelF && o.model !== modelF) return false;
                     if (from || to) {
@@ -2252,7 +2347,7 @@
             },
 
             resetFilters() {
-                ['filterGeneral', 'filterStatus', 'filterUser', 'filterModel', 'filterDateFrom', 'filterDateTo'].forEach(id => {
+                ['filterGeneral', 'filterStatus', 'filterCountry', 'filterUser', 'filterModel', 'filterDateFrom', 'filterDateTo'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.value = '';
                 });
@@ -2347,6 +2442,235 @@
                 XLSX.utils.book_append_sheet(wb, ws, 'Orders');
                 XLSX.writeFile(wb, `DARZA_Orders_${Date.now()}.xlsx`);
                 this.notify('تم تصدير الملف بنجاح', 'success');
+            },
+
+            downloadPdfReport() {
+                const rows = this.getFilteredData();
+                if (!rows.length) return this.notify('لا توجد بيانات لتنزيل PDF', 'warning');
+
+                const statusTotals = { new: 0, process: 0, done: 0, delivered: 0, postponed: 0, canceled: 0, stored: 0 };
+                let totalValue = 0;
+                rows.forEach(([_, o]) => {
+                    if (statusTotals[o.status] !== undefined) statusTotals[o.status]++;
+                    if (o.currency === 'JOD') totalValue += parseFloat(o.price || 0);
+                });
+
+                const safe = (value) => String(value ?? '-')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;');
+
+                const generatedAt = new Date().toLocaleString('en-GB');
+                const countryLabel = document.getElementById('filterCountry')?.selectedOptions?.[0]?.text || 'الكل';
+                const statusLabel = document.getElementById('filterStatus')?.selectedOptions?.[0]?.text || 'الكل';
+
+                const tableRows = rows.map(([id, o], index) => {
+                    const meta = COUNTRY_META[o.country] || { flag: '', ar: o.country || '-' };
+                    return `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td class="ref">${safe(id.slice(-8))}</td>
+                            <td class="customer">${safe(o.custName)}</td>
+                            <td dir="ltr" class="phone">${safe(o.custMob)}</td>
+                            <td>${safe(meta.flag)} ${safe(meta.ar)}</td>
+                            <td>${safe(o.governorate)}</td>
+                            <td>${safe(o.model)}</td>
+                            <td>${safe(statusMapAr[o.status] || o.status)}</td>
+                            <td>${safe(o.price)} ${safe(o.currency || 'JOD')}</td>
+                            <td>${safe(o.date)}</td>
+                        </tr>`;
+                }).join('');
+
+                const cards = Object.entries(statusTotals).map(([status, count]) => `
+                    <div class="summary-card">
+                        <span>${statusMapAr[status]}</span>
+                        <strong>${count}</strong>
+                    </div>`).join('');
+
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>DARZA Report PDF</title>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+    @page { size: A4 landscape; margin: 10mm; }
+    * { box-sizing: border-box; }
+    body {
+        font-family: 'Almarai', Tahoma, Arial, sans-serif;
+        direction: rtl;
+        color: #172126;
+        background: #ffffff;
+        margin: 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .page {
+        width: 100%;
+        min-height: 190mm;
+    }
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: stretch;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #099999 0%, #2b2d42 100%);
+        color: #fff;
+        margin-bottom: 12px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo {
+        width: 46px;
+        height: 46px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.16);
+        display: grid;
+        place-items: center;
+        font-size: 22px;
+        border: 1px solid rgba(255,255,255,0.35);
+    }
+    .brand h1 { font-size: 22px; margin: 0 0 4px; font-weight: 800; letter-spacing: .2px; }
+    .brand p { margin: 0; font-size: 11px; opacity: .88; }
+    .meta {
+        display: grid;
+        grid-template-columns: auto auto;
+        gap: 4px 14px;
+        font-size: 10.5px;
+        align-content: center;
+        text-align: right;
+    }
+    .meta b { color: #dffafa; }
+    .summary {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+    .summary-card {
+        border: 1px solid #dce9e9;
+        border-radius: 13px;
+        padding: 9px 8px;
+        background: #f8fbfb;
+        text-align: center;
+        min-height: 50px;
+    }
+    .summary-card span { display: block; font-size: 10px; color: #5d6b70; margin-bottom: 4px; }
+    .summary-card strong { display: block; font-size: 17px; color: #099999; }
+    .total-card {
+        border-color: #099999;
+        background: #eefafa;
+    }
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        table-layout: fixed;
+        overflow: hidden;
+        border: 1px solid #dce4e8;
+        border-radius: 14px;
+    }
+    thead th {
+        background: #2b2d42;
+        color: #fff;
+        font-size: 10px;
+        padding: 8px 6px;
+        font-weight: 800;
+        border-left: 1px solid rgba(255,255,255,0.08);
+        white-space: nowrap;
+    }
+    tbody td {
+        font-size: 9.2px;
+        padding: 7px 6px;
+        border-top: 1px solid #edf1f3;
+        border-left: 1px solid #edf1f3;
+        vertical-align: middle;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    tbody tr:nth-child(even) td { background: #fbfdfd; }
+    .ref { font-weight: 800; color: #099999; }
+    .customer { font-weight: 800; }
+    .phone { text-align: left; font-family: Arial, sans-serif; font-weight: 700; }
+    th:nth-child(1), td:nth-child(1) { width: 28px; text-align: center; }
+    th:nth-child(2), td:nth-child(2) { width: 68px; }
+    th:nth-child(3), td:nth-child(3) { width: 150px; }
+    th:nth-child(4), td:nth-child(4) { width: 102px; }
+    th:nth-child(5), td:nth-child(5) { width: 86px; }
+    th:nth-child(6), td:nth-child(6) { width: 110px; }
+    th:nth-child(7), td:nth-child(7) { width: 92px; }
+    th:nth-child(8), td:nth-child(8) { width: 74px; }
+    th:nth-child(9), td:nth-child(9) { width: 78px; }
+    th:nth-child(10), td:nth-child(10) { width: 74px; }
+    .footer {
+        margin-top: 10px;
+        display: flex;
+        justify-content: space-between;
+        color: #75838a;
+        font-size: 9px;
+    }
+    @media print {
+        .no-print { display: none !important; }
+        body { margin: 0; }
+    }
+</style>
+</head>
+<body>
+    <div class="page">
+        <div class="header">
+            <div class="brand">
+                <div class="logo">◆</div>
+                <div>
+                    <h1>تقرير الطلبات - DARZA PRO</h1>
+                    <p>كشف مختصر ومهيأ للطباعة على A4 أفقي</p>
+                </div>
+            </div>
+            <div class="meta">
+                <b>عدد الطلبات:</b><span>${rows.length}</span>
+                <b>إجمالي JOD:</b><span>${totalValue.toLocaleString()} JOD</span>
+                <b>الدولة:</b><span>${safe(countryLabel)}</span>
+                <b>الحالة:</b><span>${safe(statusLabel)}</span>
+                <b>وقت الإنشاء:</b><span dir="ltr">${generatedAt}</span>
+            </div>
+        </div>
+
+        <div class="summary">
+            <div class="summary-card total-card"><span>إجمالي الطلبات</span><strong>${rows.length}</strong></div>
+            ${cards}
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>رقم الطلب</th>
+                    <th>الزبون</th>
+                    <th>الموبايل</th>
+                    <th>الدولة</th>
+                    <th>المحافظة</th>
+                    <th>الموديل</th>
+                    <th>الحالة</th>
+                    <th>السعر</th>
+                    <th>التاريخ</th>
+                </tr>
+            </thead>
+            <tbody>${tableRows}</tbody>
+        </table>
+        <div class="footer"><span>DARZA PRO</span><span>تم اختصار الأعمدة غير الضرورية لملاءمة A4.</span></div>
+    </div>
+    <script>
+        window.onload = () => {
+            setTimeout(() => window.print(), 350);
+        };
+    <\/script>
+</body>
+</html>`);
+                printWindow.document.close();
+                this.notify('تم تجهيز ملف PDF للطباعة / الحفظ', 'success');
             },
 
             renderLogs() {
