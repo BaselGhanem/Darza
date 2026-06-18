@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>DARZA PRO - Enterprise Order Management V3.0</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>DARZA PRO - Enterprise Order Management V3.1.2</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -518,7 +521,7 @@
             <div class="mb-4">
                 <i class="fas fa-gem fa-3x text-primary mb-3"></i>
                 <h2 style="color: var(--primary); font-weight: 800;">DARZA PRO</h2>
-                <span class="badge bg-dark rounded-pill">Enterprise Edition v3.0</span>
+                <span class="badge bg-dark rounded-pill">Enterprise Edition v3.1.2</span>
             </div>
             <form id="loginForm">
                 <div class="input-group mb-3 shadow-sm" style="border-radius: 12px; overflow: hidden;">
@@ -1204,6 +1207,20 @@
         const pageDefRef = ref(db, 'definitions/pages');
         const modelDefRef = ref(db, 'definitions/models');
         const userDefRef = ref(db, 'definitions/entryUsers');
+        const DARZA_APP_VERSION = '3.1.3-print-10x10-exact';
+        window.DARZA_APP_VERSION = DARZA_APP_VERSION;
+        try {
+            const storedAppVersion = localStorage.getItem('darzaAppVersion');
+            const currentUrl = new URL(window.location.href);
+            const versionInUrl = currentUrl.searchParams.get('v');
+            if (versionInUrl !== DARZA_APP_VERSION || storedAppVersion !== DARZA_APP_VERSION) {
+                localStorage.setItem('darzaAppVersion', DARZA_APP_VERSION);
+                currentUrl.searchParams.set('v', DARZA_APP_VERSION);
+                window.location.replace(currentUrl.toString());
+            }
+        } catch (e) {
+            console.warn('Version refresh check skipped', e);
+        }
 
         const USERS_DB = {
             'admin': { pass: '2026', role: 'Admin', name: 'المدير العام' },
@@ -1895,39 +1912,39 @@
                 const currency = order.currency || 'JOD';
 
                 return `
-                    <section class="label-page">
+                    <section class="label-page" aria-label="Order label">
                         <div class="label-card">
-                            <div class="label-top">
-                                <div class="label-ref">رقم المرجع: <strong dir="ltr">${this.esc(refNo)}</strong></div>
-                                <div class="label-meta">${this.esc(order.date || '')}</div>
-                            </div>
+                            <header class="label-header">
+                                <div>رقم المرجع: <strong dir="ltr">${this.esc(refNo)}</strong></div>
+                                <div class="label-date" dir="ltr">${this.esc(order.date || '')}</div>
+                            </header>
 
-                            <div class="label-row label-row-two">
+                            <div class="label-grid two-cols compact-row">
                                 <div><span>اسم الصفحة:</span><strong>${this.esc(order.pageName || '-')}</strong></div>
                                 <div><span>المدخل:</span><strong>${this.esc(order.entryUser || '-')}</strong></div>
                             </div>
 
-                            <div class="label-row">
+                            <div class="label-line big-line">
                                 <span>اسم الزبون:</span>
                                 <strong>${this.esc(order.custName)}</strong>
                             </div>
 
-                            <div class="label-row">
+                            <div class="label-line big-line">
                                 <span>الموبايل:</span>
                                 <strong dir="ltr" class="phone-value">${this.esc(order.custMob)}</strong>
                             </div>
 
-                            <div class="label-row address-row">
+                            <div class="label-line address-line">
                                 <span>العنوان:</span>
                                 <strong>${this.esc(address || '-')}</strong>
                             </div>
 
-                            <div class="label-row label-row-two">
+                            <div class="label-grid two-cols">
                                 <div><span>الموديل:</span><strong>${this.esc(order.model)}</strong></div>
                                 <div><span>النمرة:</span><strong>${this.esc(order.size)}</strong></div>
                             </div>
 
-                            <div class="label-row label-row-two">
+                            <div class="label-grid two-cols">
                                 <div><span>الوزن:</span><strong>${this.esc(order.weight)} kg</strong></div>
                                 <div><span>الطول:</span><strong>${this.esc(order.height)} cm</strong></div>
                             </div>
@@ -1951,176 +1968,260 @@
                 <head>
                     <meta charset="utf-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1">
-                    <title>${this.esc(title)}</title>
+                    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+                    <title>&#8203;</title>
                     <style>
                         @page {
                             size: 100mm 100mm;
-                            margin: 0;
+                            margin: 0 !important;
                         }
 
                         * {
-                            box-sizing: border-box;
-                            -webkit-print-color-adjust: exact;
-                            print-color-adjust: exact;
+                            box-sizing: border-box !important;
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
                         }
 
-                        html, body {
-                            width: 100mm;
-                            min-height: 100mm;
-                            margin: 0;
-                            padding: 0;
-                            background: #fff;
-                            color: #111;
-                            font-family: Arial, Tahoma, sans-serif;
-                            direction: rtl;
+                        html,
+                        body {
+                            width: 100mm !important;
+                            height: auto !important;
+                            min-width: 100mm !important;
+                            max-width: 100mm !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            border: 0 !important;
+                            background: #fff !important;
+                            color: #000 !important;
+                            font-family: Arial, Tahoma, sans-serif !important;
+                            direction: rtl !important;
+                            overflow: visible !important;
+                        }
+
+                        body {
+                            position: static !important;
+                            display: block !important;
                         }
 
                         .label-page {
-                            width: 100mm;
-                            height: 100mm;
-                            margin: 0;
-                            padding: 3mm;
-                            page-break-after: always;
-                            break-after: page;
-                            display: flex;
+                            position: relative !important;
+                            inset: auto !important;
+                            left: 0 !important;
+                            right: auto !important;
+                            top: 0 !important;
+                            width: 100mm !important;
+                            min-width: 100mm !important;
+                            max-width: 100mm !important;
+                            height: 100mm !important;
+                            min-height: 100mm !important;
+                            max-height: 100mm !important;
+                            margin: 0 !important;
+                            padding: 2mm !important;
+                            border: 0 !important;
+                            display: flex !important;
+                            align-items: stretch !important;
+                            justify-content: stretch !important;
+                            overflow: hidden !important;
+                            background: #fff !important;
+                            page-break-before: auto !important;
+                            page-break-after: always !important;
+                            break-after: page !important;
+                            page-break-inside: avoid !important;
+                            break-inside: avoid !important;
                         }
 
                         .label-page:last-child {
-                            page-break-after: auto;
-                            break-after: auto;
+                            page-break-after: auto !important;
+                            break-after: auto !important;
                         }
 
                         .label-card {
-                            width: 100%;
-                            height: 100%;
-                            border: 1.35px solid #111;
-                            border-radius: 2.2mm;
-                            padding: 3mm 3.2mm;
-                            display: flex;
-                            flex-direction: column;
-                            gap: 1.45mm;
-                            overflow: hidden;
+                            width: 96mm !important;
+                            height: 96mm !important;
+                            margin: 0 !important;
+                            border: 1.45px solid #000 !important;
+                            border-radius: 2mm !important;
+                            padding: 2.2mm 2.6mm !important;
+                            display: grid !important;
+                            grid-template-rows: auto auto auto auto 1fr auto auto auto auto !important;
+                            gap: 1.15mm !important;
+                            overflow: hidden !important;
+                            background: #fff !important;
                         }
 
-                        .label-top {
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                            border-bottom: 1px solid #111;
-                            padding-bottom: 1.4mm;
-                            margin-bottom: .3mm;
-                            font-size: 10.5pt;
-                            line-height: 1.15;
+                        .label-header {
+                            display: flex !important;
+                            justify-content: space-between !important;
+                            align-items: center !important;
+                            gap: 2mm !important;
+                            padding-bottom: 1.15mm !important;
+                            border-bottom: 1.15px solid #000 !important;
+                            font-size: 12.2pt !important;
+                            line-height: 1.08 !important;
+                            font-weight: 900 !important;
                         }
 
-                        .label-ref strong {
-                            font-size: 12pt;
-                            font-weight: 900;
+                        .label-header strong {
+                            font-size: 13.8pt !important;
+                            font-weight: 900 !important;
                         }
 
-                        .label-meta {
-                            font-size: 8.5pt;
-                            color: #333;
-                            white-space: nowrap;
+                        .label-date {
+                            font-size: 9.5pt !important;
+                            font-weight: 800 !important;
+                            white-space: nowrap !important;
+                            color: #000 !important;
                         }
 
-                        .label-row,
+                        .label-line,
+                        .label-grid,
                         .label-price,
                         .label-notes {
-                            width: 100%;
-                            display: flex;
-                            align-items: center;
-                            justify-content: space-between;
-                            gap: 2mm;
-                            border-bottom: .75px solid #d0d0d0;
-                            padding: .85mm 0;
-                            min-height: 7mm;
-                            font-size: 10.8pt;
-                            line-height: 1.18;
+                            width: 100% !important;
+                            border-bottom: .85px solid #bdbdbd !important;
+                            font-size: 12.6pt !important;
+                            line-height: 1.1 !important;
                         }
 
-                        .label-row-two {
-                            display: grid;
-                            grid-template-columns: 1fr 1fr;
-                            gap: 3mm;
+                        .label-line,
+                        .label-price,
+                        .label-notes {
+                            display: flex !important;
+                            align-items: center !important;
+                            justify-content: space-between !important;
+                            gap: 2mm !important;
+                            padding: .8mm 0 !important;
+                            min-height: 7.3mm !important;
                         }
 
-                        .label-row-two > div {
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                            gap: 1.5mm;
-                            min-width: 0;
+                        .big-line {
+                            font-size: 13.4pt !important;
+                            min-height: 8.1mm !important;
                         }
 
-                        .label-row span,
-                        .label-row-two span,
+                        .label-grid {
+                            display: grid !important;
+                            grid-template-columns: 1fr 1fr !important;
+                            gap: 2.6mm !important;
+                            padding: .8mm 0 !important;
+                            min-height: 7.2mm !important;
+                        }
+
+                        .label-grid > div {
+                            display: flex !important;
+                            align-items: center !important;
+                            justify-content: space-between !important;
+                            gap: 1.4mm !important;
+                            min-width: 0 !important;
+                        }
+
+                        .compact-row {
+                            font-size: 11.2pt !important;
+                            min-height: 6.7mm !important;
+                        }
+
+                        .label-line span,
+                        .label-grid span,
                         .label-price span,
                         .label-notes span {
-                            font-weight: 800;
-                            white-space: nowrap;
-                            color: #111;
+                            font-weight: 900 !important;
+                            white-space: nowrap !important;
+                            color: #000 !important;
                         }
 
-                        .label-row strong,
-                        .label-row-two strong,
+                        .label-line strong,
+                        .label-grid strong,
                         .label-notes strong {
-                            font-weight: 700;
-                            text-align: left;
-                            overflow-wrap: anywhere;
-                            min-width: 0;
+                            font-weight: 850 !important;
+                            overflow-wrap: anywhere !important;
+                            min-width: 0 !important;
+                            text-align: left !important;
+                            color: #000 !important;
                         }
 
                         .phone-value {
-                            font-size: 12.2pt;
-                            letter-spacing: .2px;
+                            font-size: 14.7pt !important;
+                            font-weight: 900 !important;
+                            letter-spacing: .2px !important;
                         }
 
-                        .address-row {
-                            align-items: flex-start;
-                            min-height: 12mm;
+                        .address-line {
+                            align-items: flex-start !important;
+                            min-height: 14.5mm !important;
+                            padding-top: .9mm !important;
                         }
 
-                        .address-row strong {
-                            text-align: right;
-                            font-size: 10pt;
-                            line-height: 1.22;
+                        .address-line strong {
+                            text-align: right !important;
+                            font-size: 11.8pt !important;
+                            line-height: 1.16 !important;
+                            display: -webkit-box !important;
+                            -webkit-line-clamp: 3 !important;
+                            -webkit-box-orient: vertical !important;
+                            overflow: hidden !important;
                         }
 
                         .label-price {
-                            border: 1px solid #111;
-                            border-radius: 1.5mm;
-                            padding: 1.25mm 1.8mm;
-                            margin-top: .4mm;
-                            min-height: 8.8mm;
-                            font-size: 12pt;
+                            border: 1.35px solid #000 !important;
+                            border-radius: 1.5mm !important;
+                            padding: 1.1mm 1.8mm !important;
+                            min-height: 9.6mm !important;
+                            font-size: 13.4pt !important;
                         }
 
                         .label-price strong {
-                            font-size: 17pt;
-                            font-weight: 900;
-                            letter-spacing: .2px;
+                            font-size: 19.5pt !important;
+                            font-weight: 900 !important;
+                            color: #000 !important;
                         }
 
                         .label-notes {
-                            border-bottom: 0;
-                            flex: 1;
-                            align-items: flex-start;
-                            font-size: 10.5pt;
-                            padding-top: .8mm;
+                            border-bottom: 0 !important;
+                            align-items: flex-start !important;
+                            min-height: 7.4mm !important;
+                            font-size: 12pt !important;
+                            padding-top: .6mm !important;
+                        }
+
+                        @media print {
+                            html,
+                            body {
+                                width: 100mm !important;
+                                min-width: 100mm !important;
+                                max-width: 100mm !important;
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                overflow: visible !important;
+                            }
+
+                            .label-page {
+                                width: 100mm !important;
+                                height: 100mm !important;
+                                margin: 0 !important;
+                                padding: 2mm !important;
+                            }
                         }
 
                         @media screen {
+                            html,
                             body {
-                                background: #f3f4f6;
+                                min-height: 100%;
+                                background: #eef2f5 !important;
                             }
+
                             .label-page {
-                                background: #fff;
-                                box-shadow: 0 8px 24px rgba(0,0,0,.14);
-                                margin: 16px auto;
+                                background: #fff !important;
+                                box-shadow: 0 8px 24px rgba(0,0,0,.14) !important;
+                                margin: 12px auto !important;
                             }
                         }
                     </style>
+                    <script>
+                        document.title = '\u200B';
+                        try { history.replaceState(null, '\u200B', location.href.split('#')[0]); } catch (e) {}
+                        window.addEventListener('beforeprint', function () { document.title = '\u200B'; });
+                        window.addEventListener('afterprint', function () { document.title = '\u200B'; });
+                    <\/script>
                 </head>
                 <body>${labelsHtml}</body>
                 </html>`;
@@ -2149,7 +2250,7 @@
                     win.focus();
                     win.print();
                     update(ref(db), updates).then(() => {
-                        this.notify('تمت الطباعة بحجم 10×10 سم وتحويل الحالات إلى جاهزة التسليم', 'success');
+                        this.notify('تمت الطباعة بإعداد 10×10 سم وتحويل الحالات إلى جاهزة التسليم', 'success');
                     });
                 }, 500);
             },
